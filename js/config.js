@@ -75,6 +75,16 @@ export const UPGRADES = [
         effect: (gameState) => {
             gameState.frictionCoeff *= 0.8;
         }
+    },
+    {
+        id: 'timeskip',
+        name: 'Temporal Compression',
+        initialCost: 150,
+        costMultiplier: 2.0,
+        desc: 'Universe cycles 10% faster.',
+        effect: (gameState) => {
+            gameState.timeMultiplier *= 1.1;
+        }
     }
 ];
 
@@ -92,4 +102,55 @@ export const RESTART_NAMES = [
     { name: 'Hello World', language: 'Code', translation: 'Hello World' },
     { name: 'Tathastu', language: 'Sanskrit', translation: 'So be it' },
     { name: 'Lu Shamamu', language: 'Akkadian', translation: 'Let heavens be' }
+];
+
+// Layer system configuration
+export const PHASE_SHIFT_DM_THRESHOLD = 100; // Dark Matter needed to unlock next layer
+
+export const LAYERS = [
+    {
+        index: 0,
+        name: 'Universe',
+        particleName: 'Stars',
+        restartButton: 'Reignite Universe', // Uses RESTART_NAMES progression
+        spawnButton: null, // No spawn button at layer 0
+        timeScale: 1.0,
+        texture: 'star_dot' // Using default white circle for now
+    },
+    {
+        index: 1,
+        name: 'Multiverse',
+        particleName: 'Universes',
+        restartButton: 'Collapse Multiverse',
+        spawnButton: 'Fiat Lux', // "Let there be light" - spawn new universes
+        timeScale: 0.5, // Slower, more strategic
+        texture: 'universe_glow'
+    },
+    {
+        index: 2,
+        name: 'The Bulk',
+        particleName: 'Multiverse Bubbles',
+        restartButton: 'Reset Bulk',
+        spawnButton: 'Nucleate Bubble',
+        timeScale: 0.2,
+        texture: 'bubble_orb'
+    },
+    {
+        index: 3,
+        name: 'The Brane',
+        particleName: 'Bulk Nodes',
+        restartButton: 'Reweave Brane',
+        spawnButton: 'Thread Node',
+        timeScale: 0.05,
+        texture: 'brane_web'
+    },
+    {
+        index: 4,
+        name: 'The Absolute',
+        particleName: 'Brane Sheets',
+        restartButton: 'Reinitialize Absolute',
+        spawnButton: 'Emanate Sheet',
+        timeScale: 0.01,
+        texture: 'absolute_void'
+    }
 ];

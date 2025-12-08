@@ -1,4 +1,4 @@
-import { GameState, g_time, incrementGTime } from './state.js';
+import { GameState, g_time, incrementGTime, initializeLayerSystem, syncGameStateToLayer } from './state.js';
 import { DARK_MATTER_ENTROPY_MULTIPLIER, ENTROPY_DIVISOR } from './config.js';
 import { initializeRenderer, app, renderParticles } from './renderer.js';
 import {
@@ -13,12 +13,15 @@ import {
 } from './ui.js';
 import { formatNumber } from './utils.js';
 import { startEpoch, checkDeathConditions, setupRestartButton } from './gameplay.js';
+import { initializeDebugPanel } from './debug.js';
 
 (async () => {
     // Initialize all systems
     await initializeRenderer();
     initializeUI();
+    initializeLayerSystem(); // Initialize layer system (starts at Layer 0)
     setupRestartButton(restartBtn);
+    initializeDebugPanel(); // Add debug panel if ?debug is in URL
 
     // Start the game
     startEpoch();
@@ -28,7 +31,8 @@ import { startEpoch, checkDeathConditions, setupRestartButton } from './gameplay
         if (!GameState.isRunning) return;
 
         // Normalize for frame rate - deltaTime is 1.0 at 60fps
-        const dt = ticker.deltaTime;
+        // Apply time multiplier for fast forward
+        const dt = ticker.deltaTime * GameState.timeMultiplier;
 
         // 1. PHYSICS: Decay & Friction (time-normalized)
         const totalDrag = GameState.particleCount * GameState.frictionCoeff;
@@ -74,5 +78,8 @@ import { startEpoch, checkDeathConditions, setupRestartButton } from './gameplay
 
             incrementGTime(GameState.currentTimeSpeed * dt);  // Normalize for frame rate
         }
+
+        // Sync GameState changes to active layer
+        syncGameStateToLayer();
     });
 })();

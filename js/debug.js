@@ -1,0 +1,91 @@
+import { GameState, syncGameStateToLayer } from './state.js';
+import { checkPhaseShift } from './gameplay.js';
+import { LAYERS } from './config.js';
+
+/**
+ * Initialize debug panel if ?debug is in URL
+ */
+export function initializeDebugPanel() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.has('debug')) return;
+
+    // Create debug panel
+    const debugPanel = document.createElement('div');
+    debugPanel.id = 'debugPanel';
+    debugPanel.innerHTML = `
+        <div style="position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.9);
+                    border: 2px solid #00ff00; padding: 15px; color: #00ff00;
+                    font-family: monospace; font-size: 12px; z-index: 10000;
+                    max-width: 300px;">
+            <div style="font-weight: bold; margin-bottom: 10px; color: #ffff00;">🐛 DEBUG PANEL</div>
+
+            <div style="margin-bottom: 8px;">
+                Layer: <span id="debugLayer">0</span> - <span id="debugLayerName">Universe</span>
+            </div>
+            <div style="margin-bottom: 8px;">
+                DM: <span id="debugDM">0</span> / 100
+            </div>
+
+            <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 5px;">
+                <button id="debugAddEntropy" style="background: #003300; color: #00ff00; border: 1px solid #00ff00; padding: 5px; cursor: pointer;">
+                    +1000 Entropy
+                </button>
+                <button id="debugAddDM" style="background: #330033; color: #ff00ff; border: 1px solid #ff00ff; padding: 5px; cursor: pointer;">
+                    +10 Dark Matter
+                </button>
+                <button id="debugPhaseShift" style="background: #333300; color: #ffff00; border: 1px solid #ffff00; padding: 5px; cursor: pointer;">
+                    Force Phase Shift
+                </button>
+                <button id="debugResetLayer" style="background: #330000; color: #ff0000; border: 1px solid #ff0000; padding: 5px; cursor: pointer;">
+                    Reset to Layer 0
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(debugPanel);
+
+    // Update debug display
+    updateDebugDisplay();
+
+    // Button handlers
+    document.getElementById('debugAddEntropy').onclick = () => {
+        GameState.entropy += 1000;
+        syncGameStateToLayer();
+        updateDebugDisplay();
+    };
+
+    document.getElementById('debugAddDM').onclick = () => {
+        GameState.darkMatter += 10;
+        syncGameStateToLayer();
+        updateDebugDisplay();
+    };
+
+    document.getElementById('debugPhaseShift').onclick = () => {
+        checkPhaseShift();
+        updateDebugDisplay();
+    };
+
+    document.getElementById('debugResetLayer').onclick = () => {
+        if (confirm('Reset to Layer 0? This will clear all progress.')) {
+            window.location.reload();
+        }
+    };
+
+    // Update debug display every second
+    setInterval(updateDebugDisplay, 1000);
+}
+
+/**
+ * Update debug panel display
+ */
+function updateDebugDisplay() {
+    const debugLayer = document.getElementById('debugLayer');
+    const debugLayerName = document.getElementById('debugLayerName');
+    const debugDM = document.getElementById('debugDM');
+
+    if (debugLayer) {
+        debugLayer.textContent = GameState.activeLayerIndex;
+        debugLayerName.textContent = LAYERS[GameState.activeLayerIndex].name;
+        debugDM.textContent = Math.floor(GameState.darkMatter);
+    }
+}

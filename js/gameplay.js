@@ -1,4 +1,4 @@
-import { GameState, setGTime } from './state.js';
+import { GameState, setGTime, syncGameStateToLayer, syncLayerToGameState } from './state.js';
 import {
     UPGRADES,
     PRESTIGE_BASE_COST,
@@ -6,8 +6,11 @@ import {
     INITIAL_BASE_TIME_SPEED,
     INITIAL_FRICTION_COEFF,
     INITIAL_PARTICLE_COUNT,
-    INITIAL_DECAY_RATE
+    INITIAL_DECAY_RATE,
+    PHASE_SHIFT_DM_THRESHOLD,
+    LAYERS
 } from './config.js';
+import { GameLayer } from './layer.js';
 import { particleContainer } from './renderer.js';
 import {
     uiSpeed,
@@ -32,6 +35,9 @@ export function startEpoch() {
     GameState.currentActiveParticles = GameState.particleCount;
     GameState.isRunning = true;
     GameState.isFrozen = false;
+
+    // Sync to active layer
+    syncGameStateToLayer();
 
     setGTime(-10 + 20 * Math.random());
     particleContainer.alpha = 1.0;
@@ -86,6 +92,10 @@ function renderShop(restartBtn) {
                 GameState.entropy -= upgradeCosts[index];
                 u.effect(GameState);
                 upgradeCosts[index] *= u.costMultiplier;
+
+                // Sync changes to active layer
+                syncGameStateToLayer();
+
                 shopEntropy.textContent = formatNumber(GameState.entropy);
                 renderShop(restartBtn);
             }
@@ -135,6 +145,57 @@ function performPrestige() {
         upgradeCosts[index] = u.initialCost;
     });
 
+    // Sync changes to active layer
+    syncGameStateToLayer();
+
+    // Check if we should trigger phase shift
+    checkPhaseShift();
+
+    startEpoch();
+}
+
+/**
+ * Check if player has enough Dark Matter to unlock next layer
+ */
+export function checkPhaseShift() {
+    const nextLayerIndex = GameState.activeLayerIndex + 1;
+
+    // Check if next layer exists and we have enough DM
+    if (nextLayerIndex < LAYERS.length &&
+        GameState.darkMatter >= PHASE_SHIFT_DM_THRESHOLD) {
+
+        // Show phase shift notification
+        if (confirm(`You have accumulated ${PHASE_SHIFT_DM_THRESHOLD} Dark Matter.\n\nTrigger the Vacuum Phase Transition?\n\nThe universe will collapse into a single point, and you will enter Layer ${nextLayerIndex}: ${LAYERS[nextLayerIndex].name}.`)) {
+            performPhaseShift();
+        }
+    }
+}
+
+/**
+ * Perform the phase shift to next layer
+ */
+function performPhaseShift() {
+    const nextLayerIndex = GameState.activeLayerIndex + 1;
+    if (nextLayerIndex >= LAYERS.length) return;
+
+    const nextLayerConfig = LAYERS[nextLayerIndex];
+
+    // Create new layer
+    const newLayer = new GameLayer(nextLayerIndex, nextLayerConfig);
+
+    // Transfer Dark Matter to new layer
+    newLayer.darkMatter = GameState.darkMatter;
+
+    // Update active layer
+    GameState.activeLayerIndex = nextLayerIndex;
+    GameState.activeLayer = newLayer;
+
+    // Sync new layer state to GameState
+    syncLayerToGameState();
+
+    // TODO: Add zoom-out animation here
+
+    // Start new epoch
     startEpoch();
 }
 

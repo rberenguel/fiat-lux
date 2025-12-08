@@ -63,7 +63,7 @@ export async function initializeRenderer() {
     particleContainer.isRenderGroup = true;
     app.stage.addChild(particleContainer);
 
-    // Generate particle texture
+    // Generate particle texture (radius 10 × sprite scale 0.1 = 1px effective)
     const particleGraphics = new PIXI.Graphics().circle(0, 0, 10).fill(COLOR_WHITE);
     particleTexture = app.renderer.generateTexture(particleGraphics);
     particleGraphics.destroy();
@@ -96,9 +96,15 @@ export function renderParticles(g_time) {
     ensurePoolCapacity(totalParticles * totalParticles);
 
     const phaseShift = GameState.prestigeLevel * PHASE_SHIFT_PER_PRESTIGE;
-    const W = app.screen.width;
-    const H = app.screen.height;
-    const r = TAU / SYSTEM_SCALE;
+    const W = app.canvas.width;
+    const H = app.canvas.height;
+    // Particles extend ±dynamicScale from center, so use 0.45 to fill 90% of canvas
+    const dynamicScale = W * 0.45;
+    const r = TAU / dynamicScale;
+
+    // Scale particles proportionally: 1px when sphere radius = 250px
+    // Base texture radius is 10, so scale = (dynamicScale / 250) / 10
+    const baseParticleScale = dynamicScale / 2500;
 
     let spriteIndex = 0;
     let current_g_x = g_x;
@@ -138,26 +144,26 @@ export function renderParticles(g_time) {
             if (spriteIndex >= MAX_RENDER_CAPACITY) break;
 
             const sprite = spritePool[spriteIndex];
-            sprite.x = (u * SYSTEM_SCALE / 2) + (W / 2);
-            sprite.y = (v * SYSTEM_SCALE / 2) + (H / 2);
+            sprite.x = (u * dynamicScale / 2) + (W / 2);
+            sprite.y = (v * dynamicScale / 2) + (H / 2);
 
             // Color and scale logic based on life margin
             if (lifeMargin <= 0) {
                 // DEAD: Dark Void Grey
                 sprite.tint = COLOR_DEAD_GREY;
-                sprite.scale = SPRITE_SCALE_DEAD;
+                sprite.scale = baseParticleScale;
             } else if (lifeMargin < DYING_THRESHOLD_MAX && lifeMargin > DYING_THRESHOLD_MIN) {
                 // DYING (upper threshold): Supernova Flash
                 sprite.tint = explodeTint;
-                sprite.scale = 0.1 / (0.5 + lifeMargin);
+                sprite.scale = baseParticleScale / (0.5 + lifeMargin);
             } else if (lifeMargin < DYING_THRESHOLD_MIN) {
                 // DYING (lower threshold): Supernova Flash
                 sprite.tint = explodeTint;
-                sprite.scale = lifeMargin * 0.5;
+                sprite.scale = lifeMargin * baseParticleScale * 5;
             } else {
                 // ALIVE: Normal Star Color
                 sprite.tint = baseTint;
-                sprite.scale = SPRITE_SCALE_ALIVE;
+                sprite.scale = baseParticleScale;
             }
 
             sprite.alpha = 1.0;
