@@ -123,7 +123,11 @@ export function renderParticles(g_time) {
 
         for (let j = 0; j < totalParticles; j++) {
             const maxIndex = Math.max(i, j);
-            const lifeMargin = activeLimit - maxIndex;
+
+            // Add pseudo-random offset to make death less uniform
+            // Using a simple deterministic noise based on particle indices
+            const randomOffset = (Math.sin(i * 12.9898 + j * 78.233) * 43758.5453) % 1;
+            const lifeMargin = activeLimit - maxIndex + (randomOffset * 1.5);
 
             const u = Math.sin(i + current_g_y + phaseShift) + Math.sin(r * i + current_g_x);
             const v = Math.cos(i + current_g_y + phaseShift) + Math.cos(r * i + current_g_x);
