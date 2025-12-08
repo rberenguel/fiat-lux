@@ -178,3 +178,80 @@ canvas {
     opacity: 0.4;
     cursor: not-allowed;
 }
+
+/* PHASE SHIFT MODAL */
+#phaseShiftModal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(20, 10, 30, 0.95);
+    border: 2px solid rgba(255, 255, 0, 0.3);
+    padding: 40px;
+    border-radius: 16px;
+    z-index: 200;
+    text-align: center;
+    min-width: 400px;
+    max-width: 500px;
+    box-shadow: 0 0 80px rgba(255, 255, 0, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+#phaseShiftModal h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+    text-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
+}
+
+#phaseShiftModal p {
+    margin: 10px 0;
+    color: #ccc;
+    line-height: 1.6;
+}
+
+#phaseShiftModal button {
+    padding: 14px 40px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: white;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+#phaseShiftModal button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+#phaseShiftConfirm {
+    background: rgba(0, 255, 255, 0.1) !important;
+    border-color: rgba(0, 255, 255, 0.3) !important;
+}
+
+#phaseShiftConfirm:hover {
+    background: rgba(0, 255, 255, 0.2) !important;
+    border-color: rgba(0, 255, 255, 0.5) !important;
+}
+
+/* FIAT LUX BUTTON (Layer 1+) */
+#fiatLuxBtn {
+    padding: 10px 20px;
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    color: #00ffff;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+#fiatLuxBtn:hover {
+    background: rgba(0, 255, 255, 0.2);
+    border-color: rgba(0, 255, 255, 0.5);
+    transform: translateY(-1px);
+}

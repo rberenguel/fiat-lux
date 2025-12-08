@@ -20,11 +20,18 @@
     <!-- Game Statistics Display -->
     <div class="controls">
         <div id="analysisResults">
+            <div id="layerDisplay" style="color:#ffff00; font-weight:bold; margin-bottom:8px; display:none;">
+                Layer <span id="layerNumber">0</span>: <span id="layerName">Universe</span>
+            </div>
             <div>Universe Energy: <span id="speedDisplay">100%</span></div>
             <div>Particles: <span id="nValueLabel">10</span></div>
             <div>Entropy: <span id="entropyDisplay">0</span> <span id="multDisplay" style="color:#a100f2; font-size:0.8em"></span></div>
             <div id="dmRow" style="display:none; color:#a100f2">Dark Matter: <span id="dmDisplay">0</span></div>
         </div>
+        <!-- Fiat Lux button for Layer 1+ -->
+        <button id="fiatLuxBtn" style="display:none; margin-top:15px; width:100%; pointer-events:auto;">
+            Fiat Lux
+        </button>
     </div>
 
     <!-- Shop/Upgrade Modal -->
@@ -33,6 +40,18 @@
         <p>Entropy Collected: <span id="shopEntropy">0</span></p>
         <div id="upgradesList"></div>
         <button id="restartBtn">Ignite New Universe</button>
+    </div>
+
+    <!-- Phase Shift Modal -->
+    <div id="phaseShiftModal" style="display: none;">
+        <h2 style="color: #ffff00;">Vacuum Phase Transition</h2>
+        <p>You have accumulated <span id="phaseShiftDM" style="color: #ff00ff; font-weight: bold;">100</span> Dark Matter.</p>
+        <p style="margin-top: 20px;">The fabric of reality strains under the weight of collapsed universes.</p>
+        <p>Trigger the phase transition to ascend to <span id="phaseShiftLayerName" style="color: #00ffff;">The Multiverse</span>?</p>
+        <div style="margin-top: 30px; display: flex; gap: 10px; justify-content: center;">
+            <button id="phaseShiftConfirm" style="flex: 1;">Ascend</button>
+            <button id="phaseShiftCancel" style="flex: 1; background: rgba(100, 0, 0, 0.3);">Not Yet</button>
+        </div>
     </div>
 
     <!-- Game Script -->

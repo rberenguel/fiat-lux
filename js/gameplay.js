@@ -17,7 +17,16 @@ import {
     shopModal,
     shopEntropy,
     upgradesList,
-    prestigeBtn
+    prestigeBtn,
+    phaseShiftModal,
+    phaseShiftDM,
+    phaseShiftLayerName,
+    phaseShiftConfirm,
+    phaseShiftCancel,
+    layerDisplay,
+    layerNumber,
+    layerName,
+    fiatLuxBtn
 } from './ui.js';
 import { formatNumber, getRestartButtonText } from './utils.js';
 
@@ -164,10 +173,20 @@ export function checkPhaseShift() {
     if (nextLayerIndex < LAYERS.length &&
         GameState.darkMatter >= PHASE_SHIFT_DM_THRESHOLD) {
 
-        // Show phase shift notification
-        if (confirm(`You have accumulated ${PHASE_SHIFT_DM_THRESHOLD} Dark Matter.\n\nTrigger the Vacuum Phase Transition?\n\nThe universe will collapse into a single point, and you will enter Layer ${nextLayerIndex}: ${LAYERS[nextLayerIndex].name}.`)) {
+        // Show phase shift modal
+        phaseShiftDM.textContent = Math.floor(GameState.darkMatter);
+        phaseShiftLayerName.textContent = LAYERS[nextLayerIndex].name;
+        phaseShiftModal.style.display = 'block';
+
+        // Setup button handlers (one-time use)
+        phaseShiftConfirm.onclick = () => {
+            phaseShiftModal.style.display = 'none';
             performPhaseShift();
-        }
+        };
+
+        phaseShiftCancel.onclick = () => {
+            phaseShiftModal.style.display = 'none';
+        };
     }
 }
 
@@ -180,11 +199,58 @@ function performPhaseShift() {
 
     const nextLayerConfig = LAYERS[nextLayerIndex];
 
+    // Pause the game during transition
+    GameState.isRunning = false;
+
+    // Set pivot to center for proper scaling
+    const centerX = particleContainer.parent.width / 2;
+    const centerY = particleContainer.parent.height / 2;
+    particleContainer.pivot.set(centerX, centerY);
+    particleContainer.position.set(centerX, centerY);
+
+    // Zoom-out animation: shrink and fade the current universe
+    const duration = 2000; // 2 seconds
+    const startTime = Date.now();
+
+    const animateZoomOut = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // Easing function (ease-in-out)
+        const eased = progress < 0.5
+            ? 2 * progress * progress
+            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+        // Scale down and fade out
+        particleContainer.scale.set(1 - eased * 0.99); // Scale to almost 0
+        particleContainer.alpha = 1 - eased; // Fade out
+
+        if (progress < 1) {
+            requestAnimationFrame(animateZoomOut);
+        } else {
+            // Animation complete - transition to new layer
+            completePhaseShift(nextLayerIndex, nextLayerConfig);
+        }
+    };
+
+    animateZoomOut();
+}
+
+/**
+ * Complete the phase shift after animation
+ */
+function completePhaseShift(nextLayerIndex, nextLayerConfig) {
     // Create new layer
     const newLayer = new GameLayer(nextLayerIndex, nextLayerConfig);
 
     // Transfer Dark Matter to new layer
     newLayer.darkMatter = GameState.darkMatter;
+
+    // Layer 1+ starts with minimal particles (representing universes, not stars)
+    // Start with 1 particle = the universe you just left
+    if (nextLayerIndex > 0) {
+        newLayer.particleCount = 1;
+    }
 
     // Update active layer
     GameState.activeLayerIndex = nextLayerIndex;
@@ -193,10 +259,43 @@ function performPhaseShift() {
     // Sync new layer state to GameState
     syncLayerToGameState();
 
-    // TODO: Add zoom-out animation here
+    // Update layer display (show for Layer 1+)
+    if (nextLayerIndex > 0) {
+        layerDisplay.style.display = 'block';
+        layerNumber.textContent = nextLayerIndex;
+        layerName.textContent = nextLayerConfig.name;
+
+        // Show Fiat Lux button for Layer 1+
+        fiatLuxBtn.style.display = 'block';
+        fiatLuxBtn.textContent = nextLayerConfig.spawnButton || 'Fiat Lux';
+
+        // Wire up spawn button
+        fiatLuxBtn.onclick = () => spawnUniverse();
+    }
+
+    // Reset particle container scale, alpha, pivot, and position
+    particleContainer.scale.set(1);
+    particleContainer.alpha = 1;
+    particleContainer.pivot.set(0, 0);
+    particleContainer.position.set(0, 0);
 
     // Start new epoch
     startEpoch();
+}
+
+/**
+ * Spawn a new universe particle at Layer 1+
+ */
+function spawnUniverse() {
+    const SPAWN_COST = 50; // Entropy cost to spawn a universe
+
+    if (GameState.entropy >= SPAWN_COST && GameState.activeLayerIndex > 0) {
+        GameState.entropy -= SPAWN_COST;
+        GameState.particleCount += 1;
+
+        // Sync to layer
+        syncGameStateToLayer();
+    }
 }
 
 /**
