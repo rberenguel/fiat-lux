@@ -60,11 +60,15 @@ export function initializeUI() {
     phaseShiftConfirm = document.getElementById('phaseShiftConfirm');
     phaseShiftCancel = document.getElementById('phaseShiftCancel');
 
-    // Fiat Lux button (Layer 1+)
-    fiatLuxBtn = document.getElementById('fiatLuxBtn');
-
     // Create prestige button
     prestigeBtn = document.createElement('button');
     prestigeBtn.id = "prestigeBtn";
     shopModal.insertBefore(prestigeBtn, restartBtn);
+
+    // Create Fiat Lux button (for Layer 1+)
+    fiatLuxBtn = document.createElement('button');
+    fiatLuxBtn.id = "fiatLuxBtn";
+    fiatLuxBtn.className = "upgrade-btn";
+    fiatLuxBtn.style.display = 'none';
+    shopModal.insertBefore(fiatLuxBtn, restartBtn);
 }

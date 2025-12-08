@@ -1,6 +1,6 @@
 import { GameState, g_time, incrementGTime, initializeLayerSystem, syncGameStateToLayer } from './state.js';
 import { DARK_MATTER_ENTROPY_MULTIPLIER, ENTROPY_DIVISOR } from './config.js';
-import { initializeRenderer, app, renderParticles } from './renderer.js';
+import { initializeRenderer, app, renderParticles, particleContainer } from './renderer.js';
 import {
     initializeUI,
     uiEntropy,
@@ -23,8 +23,55 @@ import { initializeDebugPanel } from './debug.js';
     setupRestartButton(restartBtn);
     initializeDebugPanel(); // Add debug panel if ?debug is in URL
 
-    // Start the game
-    startEpoch();
+    // Hide particles initially (do this AFTER renderer is initialized)
+    particleContainer.alpha = 0;
+
+    // Setup start modal
+    const startModal = document.getElementById('startModal');
+    const startBtn = document.getElementById('startBtn');
+
+    startBtn.onclick = () => {
+        // Trigger fade out
+        startModal.classList.add('fade-out');
+
+        // Wait for fade to complete, then start game with fade-in
+        startModal.addEventListener('transitionend', () => {
+            startModal.style.display = 'none';
+            startEpoch();
+
+            // Fade in particles over 2 seconds
+            const fadeInDuration = 2000;
+            const fadeInStart = Date.now();
+
+            const animateFadeIn = () => {
+                const elapsed = Date.now() - fadeInStart;
+                const progress = Math.min(elapsed / fadeInDuration, 1);
+                particleContainer.alpha = progress;
+
+                if (progress < 1) {
+                    requestAnimationFrame(animateFadeIn);
+                }
+            };
+
+            animateFadeIn();
+        }, { once: true });
+    };
+
+    // Don't start automatically - wait for user to click
+    // startEpoch();
+
+    // Pause game when window loses focus
+    let wasRunningBeforeBlur = false;
+    window.addEventListener('blur', () => {
+        wasRunningBeforeBlur = GameState.isRunning;
+        GameState.isRunning = false;
+    });
+
+    window.addEventListener('focus', () => {
+        if (wasRunningBeforeBlur && !GameState.isFrozen) {
+            GameState.isRunning = true;
+        }
+    });
 
     // --- CORE GAME LOOP ---
     app.ticker.add((ticker) => {
@@ -56,12 +103,24 @@ import { initializeDebugPanel } from './debug.js';
         // 5. CALCULATE: Entropy Income (time-normalized)
         if (GameState.currentTimeSpeed > 0 && activeLimit > 0) {
             const entropyMult = 1 + (GameState.darkMatter * DARK_MATTER_ENTROPY_MULTIPLIER);
-            const activeSpritesApprox = activeLimit * activeLimit;
 
-            const currentOutput = (activeSpritesApprox / ENTROPY_DIVISOR) *
-                (GameState.currentTimeSpeed / GameState.baseTimeSpeed) *
-                entropyMult *
-                dt;  // Normalize for frame rate
+            let currentOutput;
+            if (GameState.activeLayerIndex === 0) {
+                // Layer 0: Grid-based (quadratic scaling)
+                const activeSpritesApprox = activeLimit * activeLimit;
+                currentOutput = (activeSpritesApprox / ENTROPY_DIVISOR) *
+                    (GameState.currentTimeSpeed / GameState.baseTimeSpeed) *
+                    entropyMult *
+                    dt;
+            } else {
+                // Layer 1+: Per-universe (linear scaling)
+                // Each universe generates roughly the same as a full Layer 0 cycle
+                const LAYER0_BASE_ENTROPY = (20 * 20) / ENTROPY_DIVISOR; // ~70
+                currentOutput = (GameState.particleCount * LAYER0_BASE_ENTROPY) *
+                    (GameState.currentTimeSpeed / GameState.baseTimeSpeed) *
+                    entropyMult *
+                    dt;
+            }
 
             GameState.entropy += currentOutput;
 

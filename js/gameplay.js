@@ -85,6 +85,15 @@ export function checkDeathConditions() {
  * Render the shop/upgrade interface
  */
 function renderShop(restartBtn) {
+    // Update shop title based on layer
+    const shopTitle = shopModal.querySelector('h2');
+    if (GameState.activeLayerIndex > 0) {
+        const layerConfig = LAYERS[GameState.activeLayerIndex];
+        shopTitle.textContent = `${layerConfig.name} Faded`;
+    } else {
+        shopTitle.textContent = 'Universe Faded';
+    }
+
     upgradesList.innerHTML = '';
 
     UPGRADES.forEach((u, index) => {
@@ -129,6 +138,29 @@ function renderShop(restartBtn) {
         };
     } else {
         prestigeBtn.style.display = 'none';
+    }
+
+    // Fiat Lux button - only show at Layer 1+
+    if (GameState.activeLayerIndex > 0) {
+        const FIAT_LUX_BASE_COST = 100;
+        const FIAT_LUX_MULTIPLIER = 1.5;
+        const fiatLuxCost = FIAT_LUX_BASE_COST * Math.pow(FIAT_LUX_MULTIPLIER, GameState.particleCount - 1);
+        const canFiatLux = GameState.darkMatter >= fiatLuxCost;
+
+        fiatLuxBtn.style.display = 'block';
+        fiatLuxBtn.innerHTML = `<strong>FIAT LUX</strong><br><small>Spawn new Universe.</small><br>Cost: ${formatNumber(fiatLuxCost)} Dark Matter<br><span style="color:#00ffff">+1 Universe Particle</span>`;
+        fiatLuxBtn.disabled = !canFiatLux;
+
+        fiatLuxBtn.onclick = () => {
+            if (GameState.darkMatter >= fiatLuxCost) {
+                GameState.darkMatter -= fiatLuxCost;
+                GameState.particleCount += 1;
+                syncGameStateToLayer();
+                renderShop(restartBtn);
+            }
+        };
+    } else {
+        fiatLuxBtn.style.display = 'none';
     }
 
     // Update restart button text
@@ -243,8 +275,8 @@ function completePhaseShift(nextLayerIndex, nextLayerConfig) {
     // Create new layer
     const newLayer = new GameLayer(nextLayerIndex, nextLayerConfig);
 
-    // Transfer Dark Matter to new layer
-    newLayer.darkMatter = GameState.darkMatter;
+    // Consume Dark Matter and transfer remaining
+    newLayer.darkMatter = GameState.darkMatter - PHASE_SHIFT_DM_THRESHOLD;
 
     // Layer 1+ starts with minimal particles (representing universes, not stars)
     // Start with 1 particle = the universe you just left
@@ -264,13 +296,6 @@ function completePhaseShift(nextLayerIndex, nextLayerConfig) {
         layerDisplay.style.display = 'block';
         layerNumber.textContent = nextLayerIndex;
         layerName.textContent = nextLayerConfig.name;
-
-        // Show Fiat Lux button for Layer 1+
-        fiatLuxBtn.style.display = 'block';
-        fiatLuxBtn.textContent = nextLayerConfig.spawnButton || 'Fiat Lux';
-
-        // Wire up spawn button
-        fiatLuxBtn.onclick = () => spawnUniverse();
     }
 
     // Reset particle container scale, alpha, pivot, and position
@@ -283,20 +308,6 @@ function completePhaseShift(nextLayerIndex, nextLayerConfig) {
     startEpoch();
 }
 
-/**
- * Spawn a new universe particle at Layer 1+
- */
-function spawnUniverse() {
-    const SPAWN_COST = 50; // Entropy cost to spawn a universe
-
-    if (GameState.entropy >= SPAWN_COST && GameState.activeLayerIndex > 0) {
-        GameState.entropy -= SPAWN_COST;
-        GameState.particleCount += 1;
-
-        // Sync to layer
-        syncGameStateToLayer();
-    }
-}
 
 /**
  * Setup restart button handler
@@ -314,14 +325,21 @@ export function setupRestartButton(restartBtn) {
 }
 
 /**
- * Update restart button text based on current restart count
+ * Update restart button text based on current restart count and layer
  */
 export function updateRestartButtonText(restartBtn) {
-    const buttonText = getRestartButtonText(GameState.restartCount);
-
-    if (buttonText.sub) {
-        restartBtn.innerHTML = `${buttonText.main}<br><small class="restart-translation" style="font-size:0.8em; opacity:0.8">${buttonText.sub}</small>`;
+    // Layer 1+ uses different restart text
+    if (GameState.activeLayerIndex > 0) {
+        const layerConfig = LAYERS[GameState.activeLayerIndex];
+        restartBtn.textContent = layerConfig.restartButton || 'Restart';
     } else {
-        restartBtn.textContent = buttonText.main;
+        // Layer 0 uses naming progression
+        const buttonText = getRestartButtonText(GameState.restartCount);
+
+        if (buttonText.sub) {
+            restartBtn.innerHTML = `${buttonText.main}<br><small class="restart-translation" style="font-size:0.8em; opacity:0.8">${buttonText.sub}</small>`;
+        } else {
+            restartBtn.textContent = buttonText.main;
+        }
     }
 }

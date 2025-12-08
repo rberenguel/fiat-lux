@@ -1,6 +1,7 @@
 /* Font imports */
 @import url("fonts/inter.css");
 @import url("fonts/reforma.css");
+@import url("fonts/cinzel.css");
 
 body {
     margin: 0;
@@ -254,4 +255,56 @@ canvas {
     background: rgba(0, 255, 255, 0.2);
     border-color: rgba(0, 255, 255, 0.5);
     transform: translateY(-1px);
+}
+
+/* START MODAL */
+#startModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.98);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    backdrop-filter: blur(10px);
+    opacity: 1;
+    transition: opacity 2s ease-out;
+}
+
+#startModal.fade-out {
+    opacity: 0;
+}
+
+#gameTitle {
+    font-family: "Cinzel", serif;
+    font-size: 6rem;
+    color: #ffffff;
+    margin: 0;
+    margin-bottom: 60px;
+    text-shadow: 0 0 40px rgba(255, 255, 255, 0.5);
+    letter-spacing: 0.1em;
+}
+
+#startBtn {
+    font-family: "Cinzel", serif;
+    font-size: 1.2rem;
+    padding: 20px 50px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    letter-spacing: 0.05em;
+}
+
+#startBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
 }
