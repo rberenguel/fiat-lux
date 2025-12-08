@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bubble Universe - Heat Death</title>
+
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/8.1.5/pixi.min.js"></script>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Temperature/Timeline Bar -->
+    <div id="timelineContainer">
+        <div id="timelineBar"></div>
+    </div>
+
+    <!-- Game Statistics Display -->
+    <div class="controls">
+        <div id="analysisResults">
+            <div>Universe Energy: <span id="speedDisplay">100%</span></div>
+            <div>Particles: <span id="nValueLabel">10</span></div>
+            <div>Entropy: <span id="entropyDisplay">0</span> <span id="multDisplay" style="color:#a100f2; font-size:0.8em"></span></div>
+            <div id="dmRow" style="display:none; color:#a100f2">Dark Matter: <span id="dmDisplay">0</span></div>
+        </div>
+    </div>
+
+    <!-- Shop/Upgrade Modal -->
+    <div id="shopModal">
+        <h2>Universe Faded</h2>
+        <p>Entropy Collected: <span id="shopEntropy">0</span></p>
+        <div id="upgradesList"></div>
+        <button id="restartBtn">Ignite New Universe</button>
+    </div>
+
+    <!-- Game Script -->
+    <script src="game.js"></script>
+</body>
+</html>

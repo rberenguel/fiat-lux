@@ -1,0 +1,138 @@
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #000;
+    color: #f0f0f0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    touch-action: none;
+}
+
+canvas {
+    display: block;
+}
+
+/* UI CONTROLS */
+.controls {
+    position: absolute;
+    top: 40px;
+    left: 20px;
+    background: rgba(25, 25, 25, 0.9);
+    padding: 15px 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 10;
+    min-width: 240px;
+    pointer-events: none;
+}
+
+#analysisResults {
+    font-size: 0.9rem;
+    color: #ccc;
+}
+
+#analysisResults div {
+    margin-bottom: 4px;
+}
+
+#analysisResults span {
+    font-weight: 600;
+    color: #fff;
+    min-width: 40px;
+    display: inline-block;
+    text-align: right;
+    margin-right: 5px;
+}
+
+/* TIMELINE / TEMPERATURE BAR */
+#timelineContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 8px;
+    background: #222;
+    z-index: 20;
+}
+
+#timelineBar {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #ffffff, #007aff, #111111);
+    transform-origin: left;
+    transform: scaleX(1);
+    transition: transform 0.1s linear;
+}
+
+/* SHOP MODAL */
+#shopModal {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(10, 15, 20, 0.95);
+    border: 1px solid #444;
+    padding: 30px;
+    border-radius: 16px;
+    z-index: 100;
+    text-align: center;
+    min-width: 320px;
+    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+    backdrop-filter: blur(10px);
+}
+
+#shopModal h2 {
+    margin-top: 0;
+    color: #00ccff;
+}
+
+.upgrade-btn {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+    padding: 12px;
+    background: #222;
+    border: 1px solid #444;
+    color: white;
+    cursor: pointer;
+    text-align: left;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.upgrade-btn:hover:not(:disabled) {
+    background: #333;
+    border-color: #666;
+}
+
+.upgrade-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.upgrade-btn strong {
+    color: #00ff88;
+    font-size: 1.1em;
+}
+
+.upgrade-btn small {
+    color: #aaa;
+}
+
+#restartBtn {
+    margin-top: 20px;
+    padding: 12px 30px;
+    background: linear-gradient(145deg, #007aff, #0056b3);
+    border: none;
+    color: white;
+    font-weight: bold;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 15px rgba(0, 122, 255, 0.4);
+}
+
+#restartBtn:hover {
+    transform: scale(1.05);
+}
