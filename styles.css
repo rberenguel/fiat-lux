@@ -1,15 +1,23 @@
+/* Font imports */
+@import url("fonts/inter.css");
+@import url("fonts/reforma.css");
+
 body {
     margin: 0;
     padding: 0;
     overflow: hidden;
     background-color: #000;
     color: #f0f0f0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     touch-action: none;
 }
 
 canvas {
     display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 /* UI CONTROLS */
@@ -122,17 +130,51 @@ canvas {
 
 #restartBtn {
     margin-top: 20px;
-    padding: 12px 30px;
-    background: linear-gradient(145deg, #007aff, #0056b3);
-    border: none;
+    padding: 14px 40px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     color: white;
-    font-weight: bold;
-    border-radius: 50px;
+    font-weight: 500;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 1.1rem;
-    box-shadow: 0 4px 15px rgba(0, 122, 255, 0.4);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    letter-spacing: 0.5px;
 }
 
 #restartBtn:hover {
-    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Restart button translation text */
+.restart-translation {
+    font-family: "reforma", cursive;
+    font-style: italic;
+}
+
+/* Prestige button */
+#prestigeBtn {
+    display: none;
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 12px;
+    background: rgba(80, 0, 120, 0.15);
+    border: 1px solid rgba(161, 0, 242, 0.3);
+    color: #c49ddb;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+#prestigeBtn:hover:not(:disabled) {
+    background: rgba(80, 0, 120, 0.25);
+    border-color: rgba(161, 0, 242, 0.5);
+}
+
+#prestigeBtn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
