@@ -32,7 +32,7 @@ export function initializeUI() {
             Layer <span id="layerNumber">0</span>: <span id="layerName">Universe</span>
         </div>
         <div>Universe Energy: <span id="speedDisplay">100%</span></div>
-        <div>Particles: <span id="nValueLabel" style="color:#00ccff">10<sup>20</sup></span></div>
+        <div>Particles: <span id="nValueLabel" style="color:#00ccff">10<sup>10</sup></span></div>
         <div>Entropy: <span id="entropyDisplay">0</span></div>
         <div id="dmRow" style="display:none; color:#a100f2">Dark Matter: <span id="dmDisplay">0</span></div>
     `;

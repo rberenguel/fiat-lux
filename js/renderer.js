@@ -24,6 +24,7 @@ import { hslToHex } from './utils.js';
 export let app;
 export let particleContainer;
 export let particleTexture;
+export let blobTexture;
 
 const spritePool = [];
 let previousSpriteCount = 0;
@@ -67,6 +68,13 @@ export async function initializeRenderer() {
     const particleGraphics = new PIXI.Graphics().circle(0, 0, 10).fill(COLOR_WHITE);
     particleTexture = app.renderer.generateTexture(particleGraphics);
     particleGraphics.destroy();
+
+    // Generate blob texture for high particle counts (larger, softer)
+    const blobGraphics = new PIXI.Graphics()
+        .circle(0, 0, 15)  // Larger radius than dots
+        .fill({ color: COLOR_WHITE, alpha: 0.8 }); // Semi-transparent
+    blobTexture = app.renderer.generateTexture(blobGraphics);
+    blobGraphics.destroy();
 }
 
 /**
@@ -102,9 +110,15 @@ export function renderParticles(g_time) {
     const dynamicScale = W * 0.45;
     const r = TAU / dynamicScale;
 
+    // Determine texture and scale based on particle count
+    const useBlobs = totalParticles > 300;
+    const currentTexture = useBlobs ? blobTexture : particleTexture;
+
     // Scale particles proportionally: 1px when sphere radius = 250px
-    // Base texture radius is 10, so scale = (dynamicScale / 250) / 10
-    const baseParticleScale = dynamicScale / 2500;
+    // Base texture radius is 10 for dots, 15 for blobs
+    const baseParticleScale = useBlobs
+        ? (dynamicScale / 2500) * 2.5  // Blobs are larger
+        : (dynamicScale / 2500);        // Dots normal size
 
     let spriteIndex = 0;
     let current_g_x = g_x;
@@ -144,6 +158,12 @@ export function renderParticles(g_time) {
             if (spriteIndex >= MAX_RENDER_CAPACITY) break;
 
             const sprite = spritePool[spriteIndex];
+
+            // Update texture if it has changed (for blob vs dot switching)
+            if (sprite.texture !== currentTexture) {
+                sprite.texture = currentTexture;
+            }
+
             sprite.x = (u * dynamicScale / 2) + (W / 2);
             sprite.y = (v * dynamicScale / 2) + (H / 2);
 

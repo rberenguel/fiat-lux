@@ -6,6 +6,22 @@ export const INITIAL_FRICTION_COEFF = 0.000000015;
 export const INITIAL_PARTICLE_COUNT = 10; // Linear internal value (10 -> 380)
 export const INITIAL_DECAY_RATE = 0.01;
 
+/**
+ * Calculate dynamic decay rate based on particle count exponent
+ * Decay slows as the order of magnitude increases, making later runs last longer
+ * @param {number} particleExponent - The current particle count (as exponent)
+ * @returns {number} The decay rate to apply
+ */
+export function getDecayRate(particleExponent) {
+    const baseDecay = 0.01;
+    // Decay slows as the ORDER OF MAGNITUDE increases
+    // At exponent 10 (starting): decay = 0.01
+    // At exponent 20: decay ~0.005 (twice as slow)
+    // At exponent 30: decay ~0.0033 (three times as slow)
+    const dampening = 1 + (particleExponent - 10) * 0.05;
+    return baseDecay / dampening;
+}
+
 // Sprite rendering settings
 export const SPRITE_SCALE_DEAD = 0.1;
 export const SPRITE_SCALE_ALIVE = 0.1;
@@ -21,7 +37,7 @@ export const PARTICLE_LIGHTNESS_BASE = 50;
 export const PARTICLE_LIGHTNESS_EXPLODE = 70;
 
 // Entropy calculation
-export const ENTROPY_DIVISOR = 5750; // Tuned for ~30 Entropy per run
+export const ENTROPY_DIVISOR = 860; // Tuned for ~30 Entropy per run with INITIAL_PARTICLE_COUNT=10
 export const DARK_MATTER_ENTROPY_MULTIPLIER = 0.1;
 
 // Prestige cost scaling

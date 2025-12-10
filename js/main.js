@@ -1,5 +1,5 @@
 import { GameState, g_time, incrementGTime, initializeLayerSystem, syncGameStateToLayer, loadGame, saveGame } from './state.js';
-import { DARK_MATTER_ENTROPY_MULTIPLIER, ENTROPY_DIVISOR } from './config.js';
+import { DARK_MATTER_ENTROPY_MULTIPLIER, ENTROPY_DIVISOR, getDecayRate, INITIAL_PARTICLE_COUNT } from './config.js';
 import { initializeRenderer, app, renderParticles, particleContainer } from './renderer.js';
 import {
     initializeUI,
@@ -103,7 +103,10 @@ import { initializeDebugPanel } from './debug.js';
         // 1. PHYSICS: Decay & Friction (time-normalized)
         const totalDrag = GameState.particleCount * GameState.frictionCoeff;
         GameState.currentTimeSpeed -= totalDrag * dt;
-        GameState.currentActiveParticles -= GameState.decayRate * dt;
+
+        // Dynamic decay: slows as particle count increases
+        const dynamicDecayRate = getDecayRate(Math.floor(GameState.currentActiveParticles));
+        GameState.currentActiveParticles -= dynamicDecayRate * dt;
 
         // 2. UPDATE UI: Visual Status
         const tempRatio = Math.max(0, GameState.currentTimeSpeed / GameState.baseTimeSpeed);
@@ -134,7 +137,7 @@ import { initializeDebugPanel } from './debug.js';
             } else {
                 // Layer 1+: Per-universe (linear scaling)
                 // Each universe generates roughly the same as a full Layer 0 cycle
-                const LAYER0_BASE_ENTROPY = (20 * 20) / ENTROPY_DIVISOR; // ~70
+                const LAYER0_BASE_ENTROPY = (INITIAL_PARTICLE_COUNT * INITIAL_PARTICLE_COUNT) / ENTROPY_DIVISOR;
                 currentOutput = (GameState.particleCount * LAYER0_BASE_ENTROPY) *
                     (GameState.currentTimeSpeed / GameState.baseTimeSpeed) *
                     entropyMult *
