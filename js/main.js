@@ -1,4 +1,4 @@
-import { GameState, g_time, incrementGTime, initializeLayerSystem, syncGameStateToLayer } from './state.js';
+import { GameState, g_time, incrementGTime, initializeLayerSystem, syncGameStateToLayer, loadGame, saveGame } from './state.js';
 import { DARK_MATTER_ENTROPY_MULTIPLIER, ENTROPY_DIVISOR } from './config.js';
 import { initializeRenderer, app, renderParticles, particleContainer } from './renderer.js';
 import {
@@ -12,14 +12,27 @@ import {
     restartBtn
 } from './ui.js';
 import { formatNumber } from './utils.js';
-import { startEpoch, checkDeathConditions, setupRestartButton } from './gameplay.js';
+import { startEpoch, checkDeathConditions, setupRestartButton, restoreUpgradeCosts } from './gameplay.js';
 import { initializeDebugPanel } from './debug.js';
 
 (async () => {
     // Initialize all systems
     await initializeRenderer();
     initializeUI();
-    initializeLayerSystem(); // Initialize layer system (starts at Layer 0)
+
+    // Check for ?new URL parameter to force fresh start
+    const urlParams = new URLSearchParams(window.location.search);
+    const forceNew = urlParams.has('new');
+
+    // Try to load saved game, otherwise initialize fresh
+    const saveLoaded = !forceNew && await loadGame();
+    if (!saveLoaded) {
+        initializeLayerSystem(); // Initialize layer system (starts at Layer 0)
+    } else {
+        // Restore upgrade costs from save data
+        restoreUpgradeCosts(GameState.upgradePurchaseCounts || {});
+    }
+
     setupRestartButton(restartBtn);
     initializeDebugPanel(); // Add debug panel if ?debug is in URL
 
@@ -60,11 +73,12 @@ import { initializeDebugPanel } from './debug.js';
     // Don't start automatically - wait for user to click
     // startEpoch();
 
-    // Pause game when window loses focus
+    // Pause game when window loses focus & auto-save
     let wasRunningBeforeBlur = false;
     window.addEventListener('blur', () => {
         wasRunningBeforeBlur = GameState.isRunning;
         GameState.isRunning = false;
+        saveGame(); // Auto-save when leaving tab
     });
 
     window.addEventListener('focus', () => {
@@ -72,6 +86,11 @@ import { initializeDebugPanel } from './debug.js';
             GameState.isRunning = true;
         }
     });
+
+    // Auto-save every 30 seconds
+    setInterval(() => {
+        saveGame();
+    }, 30000);
 
     // --- CORE GAME LOOP ---
     app.ticker.add((ticker) => {

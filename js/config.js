@@ -3,7 +3,7 @@
 // Initial physics parameters
 export const INITIAL_BASE_TIME_SPEED = 0.0005;
 export const INITIAL_FRICTION_COEFF = 0.000000015;
-export const INITIAL_PARTICLE_COUNT = 20; // Linear internal value (20 -> 380)
+export const INITIAL_PARTICLE_COUNT = 10; // Linear internal value (10 -> 380)
 export const INITIAL_DECAY_RATE = 0.01;
 
 // Sprite rendering settings

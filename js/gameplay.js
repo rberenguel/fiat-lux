@@ -1,4 +1,4 @@
-import { GameState, setGTime, syncGameStateToLayer, syncLayerToGameState } from './state.js';
+import { GameState, setGTime, syncGameStateToLayer, syncLayerToGameState, saveGame } from './state.js';
 import {
     UPGRADES,
     PRESTIGE_BASE_COST,
@@ -31,7 +31,28 @@ import {
 import { formatNumber, getRestartButtonText } from './utils.js';
 
 // Current upgrade costs (will be modified during gameplay)
-const upgradeCosts = UPGRADES.map(u => u.initialCost);
+// Made mutable so it can be restored from save
+export let upgradeCosts = UPGRADES.map(u => u.initialCost);
+
+/**
+ * Restore upgrade costs from save data
+ */
+export function restoreUpgradeCosts(purchaseCounts) {
+    UPGRADES.forEach((u, index) => {
+        const purchaseCount = purchaseCounts[u.id] || 0;
+        upgradeCosts[index] = u.initialCost * Math.pow(u.costMultiplier, purchaseCount);
+    });
+}
+
+/**
+ * Track upgrade purchase in save data
+ */
+function trackUpgradePurchase(upgradeId) {
+    if (!GameState.upgradePurchaseCounts) {
+        GameState.upgradePurchaseCounts = {};
+    }
+    GameState.upgradePurchaseCounts[upgradeId] = (GameState.upgradePurchaseCounts[upgradeId] || 0) + 1;
+}
 
 // Store reference to restart button
 let restartButtonRef = null;
@@ -111,11 +132,17 @@ function renderShop(restartBtn) {
                 u.effect(GameState);
                 upgradeCosts[index] *= u.costMultiplier;
 
+                // Track purchase for save/load
+                trackUpgradePurchase(u.id);
+
                 // Sync changes to active layer
                 syncGameStateToLayer();
 
                 shopEntropy.textContent = formatNumber(GameState.entropy);
                 renderShop(restartBtn);
+
+                // Auto-save after upgrade purchase
+                saveGame();
             }
         };
         upgradesList.appendChild(btn);
@@ -134,6 +161,7 @@ function renderShop(restartBtn) {
         prestigeBtn.onclick = () => {
             if (confirm("Collapse the universe?")) {
                 performPrestige();
+                saveGame(); // Auto-save after prestige
             }
         };
     } else {
@@ -157,6 +185,7 @@ function renderShop(restartBtn) {
                 GameState.particleCount += 1;
                 syncGameStateToLayer();
                 renderShop(restartBtn);
+                saveGame(); // Auto-save after Fiat Lux purchase
             }
         };
     } else {
@@ -303,6 +332,9 @@ function completePhaseShift(nextLayerIndex, nextLayerConfig) {
     particleContainer.alpha = 1;
     particleContainer.pivot.set(0, 0);
     particleContainer.position.set(0, 0);
+
+    // Auto-save after phase shift
+    saveGame();
 
     // Start new epoch
     startEpoch();

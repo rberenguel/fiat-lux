@@ -6,6 +6,7 @@ import {
     LAYERS
 } from './config.js';
 import { GameLayer } from './layer.js';
+import { get, set } from '../lib/idb-keyval.js';
 
 // Global game state
 // At Layer 0, this IS the game state
@@ -118,4 +119,97 @@ export function setGTime(value) {
 
 export function incrementGTime(delta) {
     g_time += delta;
+}
+
+// Save/Load System
+const SAVE_KEY = 'fiatLuxSave';
+
+/**
+ * Save current game state to IndexedDB
+ */
+export async function saveGame() {
+    const layer = GameState.activeLayer;
+    if (!layer) return;
+
+    const saveData = {
+        version: 1, // For future migration support
+        timestamp: Date.now(),
+
+        // Layer system
+        activeLayerIndex: GameState.activeLayerIndex,
+
+        // Active layer state
+        entropy: layer.entropy,
+        darkMatter: layer.darkMatter,
+        prestigeLevel: layer.prestigeLevel,
+        particleCount: layer.particleCount,
+        baseTimeSpeed: layer.baseTimeSpeed,
+        frictionCoeff: layer.frictionCoeff,
+        decayRate: layer.decayRate,
+        timeMultiplier: layer.timeMultiplier,
+        restartCount: layer.restartCount,
+
+        // Track upgrade purchases (to restore costs)
+        upgradePurchaseCounts: GameState.upgradePurchaseCounts || {},
+
+        // Prestige upgrades (one-time purchases)
+        prestigeUpgrades: GameState.prestigeUpgrades || [],
+
+        // Total playtime tracking
+        totalPlayTime: GameState.totalPlayTime || 0
+    };
+
+    await set(SAVE_KEY, saveData);
+}
+
+/**
+ * Load game state from IndexedDB
+ * @returns {boolean} True if save was found and loaded
+ */
+export async function loadGame() {
+    const saveData = await get(SAVE_KEY);
+    if (!saveData) return false;
+
+    try {
+        // Restore layer system
+        const layerConfig = LAYERS[saveData.activeLayerIndex];
+        const layer = new GameLayer(saveData.activeLayerIndex, layerConfig);
+
+        // Restore layer state
+        layer.entropy = saveData.entropy || 0;
+        layer.darkMatter = saveData.darkMatter || 0;
+        layer.prestigeLevel = saveData.prestigeLevel || 0;
+        layer.particleCount = saveData.particleCount || INITIAL_PARTICLE_COUNT;
+        layer.baseTimeSpeed = saveData.baseTimeSpeed || INITIAL_BASE_TIME_SPEED;
+        layer.frictionCoeff = saveData.frictionCoeff || INITIAL_FRICTION_COEFF;
+        layer.decayRate = saveData.decayRate || INITIAL_DECAY_RATE;
+        layer.timeMultiplier = saveData.timeMultiplier || 1.0;
+        layer.restartCount = saveData.restartCount || 0;
+
+        // Set active layer
+        GameState.activeLayerIndex = saveData.activeLayerIndex;
+        GameState.activeLayer = layer;
+
+        // Restore upgrade tracking
+        GameState.upgradePurchaseCounts = saveData.upgradePurchaseCounts || {};
+        GameState.prestigeUpgrades = saveData.prestigeUpgrades || [];
+        GameState.totalPlayTime = saveData.totalPlayTime || 0;
+
+        // Sync layer to GameState
+        syncLayerToGameState();
+
+        console.log('Game loaded successfully from IndexedDB');
+        return true;
+    } catch (error) {
+        console.error('Error loading save data:', error);
+        return false;
+    }
+}
+
+/**
+ * Delete save data (for testing or "wipe save" feature)
+ */
+export async function deleteSave() {
+    await set(SAVE_KEY, undefined);
+    console.log('Save data deleted');
 }
