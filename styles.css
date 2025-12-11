@@ -4,369 +4,591 @@
 @import url("fonts/cinzel.css");
 
 body {
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background-color: #000;
-    color: #f0f0f0;
-    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    touch-action: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #000;
+  color: #f0f0f0;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  touch-action: none;
 }
 
 canvas {
-    display: block;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 /* UI CONTROLS */
 .controls {
-    position: absolute;
-    top: 40px;
-    left: 20px;
-    background: rgba(25, 25, 25, 0.9);
-    padding: 15px 20px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    z-index: 10;
-    min-width: 240px;
-    pointer-events: none;
+  position: absolute;
+  top: 40px;
+  left: 20px;
+  background: rgba(25, 25, 25, 0.9);
+  padding: 15px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 10;
+  min-width: 240px;
+  pointer-events: none;
 }
 
 #analysisResults {
-    font-size: 0.9rem;
-    color: #ccc;
+  font-size: 0.9rem;
+  color: #ccc;
 }
 
 #analysisResults div {
-    margin-bottom: 4px;
+  margin-bottom: 4px;
 }
 
 #analysisResults span {
-    font-weight: 600;
-    color: #fff;
-    min-width: 40px;
-    display: inline-block;
-    text-align: right;
-    margin-right: 5px;
+  font-weight: 600;
+  color: #fff;
+  min-width: 40px;
+  display: inline-block;
+  text-align: right;
+  margin-right: 5px;
+}
+
+/* MENU BUTTON */
+#menuBtn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  background: rgba(25, 25, 25, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 30;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#menuBtn:hover {
+  background: rgba(40, 40, 40, 0.95);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
 }
 
 /* TIMELINE / TEMPERATURE BAR */
 #timelineContainer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 8px;
-    background: #222;
-    z-index: 20;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  background: #222;
+  z-index: 20;
 }
 
 #timelineBar {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, #ffffff, #007aff, #111111);
-    transform-origin: left;
-    transform: scaleX(1);
-    transition: transform 0.1s linear;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #ffffff, #007aff, #111111);
+  transform-origin: left;
+  transform: scaleX(1);
+  transition: transform 0.1s linear;
 }
 
 /* SHOP MODAL */
 #shopModal {
-    display: none;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(10, 15, 20, 0.95);
-    border: 1px solid #444;
-    padding: 30px;
-    border-radius: 16px;
-    z-index: 100;
-    text-align: center;
-    min-width: 320px;
-    box-shadow: 0 0 50px rgba(0,0,0,0.8);
-    backdrop-filter: blur(10px);
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(10, 15, 20, 0.95);
+  border: 1px solid #444;
+  padding: 30px;
+  border-radius: 16px;
+  z-index: 100;
+  text-align: center;
+  min-width: 320px;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
 }
 
 #shopModal h2 {
-    margin-top: 0;
-    color: #00ccff;
+  margin-top: 0;
+  color: #00ccff;
 }
 
 .upgrade-btn {
-    display: block;
-    width: 100%;
-    margin: 10px 0;
-    padding: 12px;
-    background: #222;
-    border: 1px solid #444;
-    color: white;
-    cursor: pointer;
-    text-align: left;
-    border-radius: 8px;
-    transition: all 0.2s;
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+  padding: 12px;
+  background: #222;
+  border: 1px solid #444;
+  color: white;
+  cursor: pointer;
+  text-align: left;
+  border-radius: 8px;
+  transition: all 0.2s;
 }
 
 .upgrade-btn:hover:not(:disabled) {
-    background: #333;
-    border-color: #666;
+  background: #333;
+  border-color: #666;
 }
 
 .upgrade-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .upgrade-btn strong {
-    color: #00ff88;
-    font-size: 1.1em;
+  color: #00ff88;
+  font-size: 1.1em;
 }
 
 .upgrade-btn small {
-    color: #aaa;
+  color: #aaa;
 }
 
 #restartBtn {
-    margin-top: 20px;
-    padding: 14px 40px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: white;
-    font-weight: 500;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: all 0.2s ease;
-    letter-spacing: 0.5px;
+  margin-top: 20px;
+  padding: 14px 40px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: white;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  letter-spacing: 0.5px;
 }
 
 #restartBtn:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 /* Restart button translation text */
 .restart-translation {
-    font-family: "reforma", cursive;
-    font-style: italic;
+  font-family: "reforma", cursive;
+  font-style: italic;
 }
 
 /* Prestige button */
 #prestigeBtn {
-    display: none;
-    width: 100%;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    padding: 12px;
-    background: rgba(80, 0, 120, 0.15);
-    border: 1px solid rgba(161, 0, 242, 0.3);
-    color: #c49ddb;
-    cursor: pointer;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    transition: all 0.2s ease;
+  display: none;
+  width: 100%;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding: 12px;
+  background: rgba(80, 0, 120, 0.15);
+  border: 1px solid rgba(161, 0, 242, 0.3);
+  color: #c49ddb;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
 }
 
 #prestigeBtn:hover:not(:disabled) {
-    background: rgba(80, 0, 120, 0.25);
-    border-color: rgba(161, 0, 242, 0.5);
+  background: rgba(80, 0, 120, 0.25);
+  border-color: rgba(161, 0, 242, 0.5);
 }
 
 #prestigeBtn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* MENU/SETTINGS MODAL */
+#menuModal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(10, 15, 20, 0.95);
+  border: 1px solid #444;
+  padding: 30px;
+  border-radius: 16px;
+  z-index: 150;
+  text-align: center;
+  min-width: 320px;
+  max-width: 500px;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+}
+
+#menuModal h2 {
+  margin-top: 0;
+  color: #00ccff;
+}
+
+#menuModal h3 {
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.autobuy-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 8px 0;
+  padding: 10px 12px;
+  background: #222;
+  border: 1px solid #444;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.autobuy-item-locked {
+  opacity: 0.4;
+}
+
+.autobuy-label {
+  flex: 1;
+  color: #ccc;
+}
+
+.autobuy-label strong {
+  color: #00ff88;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.autobuy-toggle {
+  width: 40px;
+  height: 20px;
+  position: relative;
+  cursor: pointer;
+}
+
+.autobuy-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.autobuy-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #555;
+  transition: 0.3s;
+  border-radius: 20px;
+}
+
+.autobuy-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.autobuy-toggle input:checked + .autobuy-toggle-slider {
+  background-color: #00ff88;
+}
+
+.autobuy-toggle input:checked + .autobuy-toggle-slider:before {
+  transform: translateX(20px);
+}
+
+.autobuy-toggle input:disabled + .autobuy-toggle-slider {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+#closeMenuBtn {
+  padding: 14px 40px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: white;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+#closeMenuBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 /* PHASE SHIFT MODAL */
 #phaseShiftModal {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(20, 10, 30, 0.95);
-    border: 2px solid rgba(255, 255, 0, 0.3);
-    padding: 40px;
-    border-radius: 16px;
-    z-index: 200;
-    text-align: center;
-    min-width: 400px;
-    max-width: 500px;
-    box-shadow: 0 0 80px rgba(255, 255, 0, 0.2);
-    backdrop-filter: blur(10px);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(20, 10, 30, 0.95);
+  border: 2px solid rgba(255, 255, 0, 0.3);
+  padding: 40px;
+  border-radius: 16px;
+  z-index: 200;
+  text-align: center;
+  min-width: 400px;
+  max-width: 500px;
+  box-shadow: 0 0 80px rgba(255, 255, 0, 0.2);
+  backdrop-filter: blur(10px);
 }
 
 #phaseShiftModal h2 {
-    margin-top: 0;
-    margin-bottom: 20px;
-    font-size: 1.8rem;
-    text-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+  text-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
 }
 
 #phaseShiftModal p {
-    margin: 10px 0;
-    color: #ccc;
-    line-height: 1.6;
+  margin: 10px 0;
+  color: #ccc;
+  line-height: 1.6;
 }
 
 #phaseShiftModal button {
-    padding: 14px 40px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: white;
-    font-weight: 500;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: all 0.2s ease;
+  padding: 14px 40px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: white;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
 }
 
 #phaseShiftModal button:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 #phaseShiftConfirm {
-    background: rgba(0, 255, 255, 0.1) !important;
-    border-color: rgba(0, 255, 255, 0.3) !important;
+  background: rgba(0, 255, 255, 0.1) !important;
+  border-color: rgba(0, 255, 255, 0.3) !important;
 }
 
 #phaseShiftConfirm:hover {
-    background: rgba(0, 255, 255, 0.2) !important;
-    border-color: rgba(0, 255, 255, 0.5) !important;
+  background: rgba(0, 255, 255, 0.2) !important;
+  border-color: rgba(0, 255, 255, 0.5) !important;
 }
 
 /* FIAT LUX BUTTON (Layer 1+) */
 #fiatLuxBtn {
-    padding: 10px 20px;
-    background: rgba(0, 255, 255, 0.1);
-    border: 1px solid rgba(0, 255, 255, 0.3);
-    color: #00ffff;
-    font-weight: 500;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.95rem;
-    transition: all 0.2s ease;
+  padding: 10px 20px;
+  background: rgba(0, 255, 255, 0.1);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  color: #00ffff;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
 }
 
 #fiatLuxBtn:hover {
-    background: rgba(0, 255, 255, 0.2);
-    border-color: rgba(0, 255, 255, 0.5);
-    transform: translateY(-1px);
+  background: rgba(0, 255, 255, 0.2);
+  border-color: rgba(0, 255, 255, 0.5);
+  transform: translateY(-1px);
 }
 
 /* START MODAL */
 #startModal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.98);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000;
-    backdrop-filter: blur(10px);
-    opacity: 1;
-    transition: opacity 2s ease-out;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.98);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(10px);
+  opacity: 1;
+  transition: opacity 2s ease-out;
 }
 
 #startModal.fade-out {
-    opacity: 0;
+  opacity: 0;
 }
 
 #gameTitle {
-    font-family: "Cinzel", serif;
-    font-size: 6rem;
-    color: #ffffff;
-    margin: 0;
-    margin-bottom: 60px;
-    text-shadow: 0 0 40px rgba(255, 255, 255, 0.5);
-    letter-spacing: 0.1em;
+  font-family: "Cinzel", serif;
+  font-size: 6rem;
+  color: #ffffff;
+  margin: 0;
+  margin-bottom: 60px;
+  text-shadow: 0 0 40px rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.1em;
 }
 
 #startBtn {
-    font-family: "Cinzel", serif;
-    font-size: 1.2rem;
-    padding: 20px 50px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    letter-spacing: 0.05em;
+  font-family: "Cinzel", serif;
+  font-size: 1.2rem;
+  padding: 20px 50px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  letter-spacing: 0.05em;
 }
 
 #startBtn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.4);
-    transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
 }
 
 /* RESPONSIVE DESIGN FOR MOBILE */
 @media (max-width: 768px) {
-    #gameTitle {
-        font-size: 3.5rem;
-        margin-bottom: 40px;
-        padding: 0 20px;
-    }
+  #gameTitle {
+    font-size: 3.5rem;
+    margin-bottom: 40px;
+    padding: 0 20px;
+  }
 
-    #startBtn {
-        font-size: 1rem;
-        padding: 16px 40px;
-    }
+  #startBtn {
+    font-size: 1rem;
+    padding: 16px 40px;
+  }
 
-    .controls {
-        top: 15px;
-        left: 10px;
-        padding: 10px 15px;
-        min-width: 200px;
-        font-size: 0.85rem;
-    }
+  .controls {
+    top: 15px;
+    left: 10px;
+    padding: 10px 15px;
+    min-width: 200px;
+    font-size: 0.85rem;
+  }
 
-    #shopModal {
-        min-width: 280px;
-        padding: 20px;
-        max-width: 90vw;
-    }
+  #shopModal {
+    min-width: 280px;
+    padding: 20px;
+    max-width: 90vw;
+  }
 
-    #phaseShiftModal {
-        min-width: 280px;
-        max-width: 90vw;
-        padding: 30px 20px;
-    }
+  #phaseShiftModal {
+    min-width: 280px;
+    max-width: 90vw;
+    padding: 30px 20px;
+  }
 }
 
 @media (max-width: 480px) {
-    #gameTitle {
-        font-size: 2.5rem;
-        margin-bottom: 30px;
-    }
+  #gameTitle {
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+  }
 
-    #startBtn {
-        font-size: 0.9rem;
-        padding: 14px 30px;
-    }
+  #startBtn {
+    font-size: 0.9rem;
+    padding: 14px 30px;
+  }
 
-    .controls {
-        font-size: 0.8rem;
-        min-width: 180px;
-    }
+  .controls {
+    font-size: 0.8rem;
+    min-width: 180px;
+  }
 }
 
 @media (max-height: 600px) {
-    #gameTitle {
-        font-size: 3rem;
-        margin-bottom: 30px;
-    }
+  #gameTitle {
+    font-size: 3rem;
+    margin-bottom: 30px;
+  }
 
-    #startBtn {
-        padding: 12px 30px;
-    }
+  #startBtn {
+    padding: 12px 30px;
+  }
+}
+
+/* Auto-restart transition animation */
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+/* Primordial Matter Tutorial Modal */
+#primordialTutorialModal {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(10, 10, 20, 0.98);
+  backdrop-filter: blur(10px);
+  padding: 40px;
+  border-radius: 20px;
+  border: 2px solid rgba(255, 170, 0, 0.5);
+  box-shadow:
+    0 0 40px rgba(255, 170, 0, 0.3),
+    inset 0 0 60px rgba(255, 170, 0, 0.1);
+  z-index: 250;
+  max-width: 500px;
+  text-align: center;
+  animation: tutorialPulse 3s ease-in-out infinite;
+}
+
+#primordialTutorialBtn {
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+#primordialTutorialBtn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 170, 0, 0.6);
+}
+
+@keyframes tutorialPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 40px rgba(255, 170, 0, 0.3),
+      inset 0 0 60px rgba(255, 170, 0, 0.1);
+  }
+  50% {
+    box-shadow:
+      0 0 60px rgba(255, 170, 0, 0.5),
+      inset 0 0 80px rgba(255, 170, 0, 0.2);
+  }
 }

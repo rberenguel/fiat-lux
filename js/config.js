@@ -1,3 +1,10 @@
+import {
+  UNLOCK_STABILITY_THRESHOLD,
+  UNLOCK_HEAT_THRESHOLD,
+  UNLOCK_INSULATION_THRESHOLD,
+  UNLOCK_TIMESKIP_THRESHOLD,
+} from "./constants.js";
+
 // Game balance configuration - tweak these values to adjust gameplay
 
 // Initial physics parameters
@@ -13,13 +20,13 @@ export const INITIAL_DECAY_RATE = 0.01;
  * @returns {number} The decay rate to apply
  */
 export function getDecayRate(particleExponent) {
-    const baseDecay = 0.01;
-    // Decay slows as the ORDER OF MAGNITUDE increases
-    // At exponent 10 (starting): decay = 0.01
-    // At exponent 20: decay ~0.005 (twice as slow)
-    // At exponent 30: decay ~0.0033 (three times as slow)
-    const dampening = 1 + (particleExponent - 10) * 0.05;
-    return baseDecay / dampening;
+  const baseDecay = 0.01;
+  // Decay slows as the ORDER OF MAGNITUDE increases
+  // At exponent 10 (starting): decay = 0.01
+  // At exponent 20: decay ~0.005 (twice as slow)
+  // At exponent 30: decay ~0.0033 (three times as slow)
+  const dampening = 1 + (particleExponent - 10) * 0.05;
+  return baseDecay / dampening;
 }
 
 // Sprite rendering settings
@@ -52,121 +59,204 @@ export const SPRITE_POOL_BATCH_SIZE = 1000;
 
 // Upgrade definitions
 export const UPGRADES = [
-    {
-        id: 'mass',
-        name: 'Baryogenesis',
-        initialCost: 100,
-        costMultiplier: 1.5,
-        desc: 'Increase Particles (+5 Orders of Magnitude).',
-        effect: (gameState) => {
-            gameState.particleCount += 5;
-        }
+  {
+    id: "mass",
+    name: "Baryogenesis",
+    initialCost: 100,
+    costMultiplier: 1.5,
+    desc: "Increase Particles (+5 Orders of Magnitude).",
+    effect: (gameState) => {
+      gameState.particleCount += 5;
     },
-    {
-        id: 'stability',
-        name: 'Strong Force',
-        initialCost: 250,
-        costMultiplier: 1.5,
-        desc: 'Particles decay slower.',
-        effect: (gameState) => {
-            gameState.decayRate *= 0.9;
-        }
+    unlockCondition: (gs) => true,
+  },
+  {
+    id: "stability",
+    name: "Strong Force",
+    initialCost: 7500,
+    costMultiplier: 1.5,
+    desc: "Particles decay slower.",
+    effect: (gameState) => {
+      gameState.decayRate *= 0.9;
     },
-    {
-        id: 'heat',
-        name: 'Big Bang Energy',
-        initialCost: 350,
-        costMultiplier: 1.5,
-        desc: 'Universe starts faster.',
-        effect: (gameState) => {
-            gameState.baseTimeSpeed += 0.0005;
-        }
+    unlockCondition: (gs) => gs.lifetimeEntropy >= UNLOCK_STABILITY_THRESHOLD,
+  },
+  {
+    id: "heat",
+    name: "Big Bang Energy",
+    initialCost: 1500,
+    costMultiplier: 1.5,
+    desc: "Universe starts faster.",
+    effect: (gameState) => {
+      gameState.baseTimeSpeed += 0.0005;
     },
-    {
-        id: 'insulation',
-        name: 'Dark Energy',
-        initialCost: 600,
-        costMultiplier: 1.5,
-        desc: 'Expansion reduces friction.',
-        effect: (gameState) => {
-            gameState.frictionCoeff *= 0.8;
-        }
+    unlockCondition: (gs) => gs.lifetimeEntropy >= UNLOCK_HEAT_THRESHOLD,
+  },
+  {
+    id: "insulation",
+    name: "Dark Energy",
+    initialCost: 22500,
+    costMultiplier: 1.5,
+    desc: "Expansion reduces friction.",
+    effect: (gameState) => {
+      gameState.frictionCoeff *= 0.8;
     },
-    {
-        id: 'timeskip',
-        name: 'Temporal Compression',
-        initialCost: 150,
-        costMultiplier: 2.0,
-        desc: 'Universe cycles 10% faster.',
-        effect: (gameState) => {
-            gameState.timeMultiplier *= 1.1;
-        }
-    }
+    unlockCondition: (gs) => gs.lifetimeEntropy >= UNLOCK_INSULATION_THRESHOLD,
+  },
+  {
+    id: "timeskip",
+    name: "Temporal Compression",
+    initialCost: 3500,
+    costMultiplier: 1.6,
+    desc: "Universe cycles 10% faster.",
+    effect: (gameState) => {
+      gameState.timeMultiplier *= 1.1;
+    },
+    unlockCondition: (gs) => gs.lifetimeEntropy >= UNLOCK_TIMESKIP_THRESHOLD,
+  },
+  // AUTO-BUY UNLOCK UPGRADES
+  {
+    id: "autobuy_mass",
+    name: "Maxwell's Demon",
+    initialCost: 4000,
+    costMultiplier: 1,
+    desc: "Enables auto-purchase for Baryogenesis. (One-time)",
+    effect: (gameState) => {
+      if (!gameState.autoBuyUnlocked) gameState.autoBuyUnlocked = {};
+      gameState.autoBuyUnlocked.mass = true;
+    },
+    unlockCondition: (gs) => gs.lifetimeEntropy >= 8000, // Half of historical total needed
+    isOneTime: true,
+  },
+  {
+    id: "autobuy_heat",
+    name: "Improbability Generator",
+    initialCost: 6000,
+    costMultiplier: 1,
+    desc: "Enables auto-purchase for Big Bang Energy. (One-time)",
+    effect: (gameState) => {
+      if (!gameState.autoBuyUnlocked) gameState.autoBuyUnlocked = {};
+      gameState.autoBuyUnlocked.heat = true;
+    },
+    unlockCondition: (gs) => gs.lifetimeEntropy >= 12000,
+    isOneTime: true,
+  },
+  {
+    id: "autobuy_stability",
+    name: "Quantum Observer",
+    initialCost: 12000,
+    costMultiplier: 1,
+    desc: "Enables auto-purchase for Strong Force. (One-time)",
+    effect: (gameState) => {
+      if (!gameState.autoBuyUnlocked) gameState.autoBuyUnlocked = {};
+      gameState.autoBuyUnlocked.stability = true;
+    },
+    unlockCondition: (gs) => gs.lifetimeEntropy >= 24000,
+    isOneTime: true,
+  },
+  {
+    id: "autobuy_insulation",
+    name: "Laplace's Daemon",
+    initialCost: 35000,
+    costMultiplier: 1,
+    desc: "Enables auto-purchase for Dark Energy. (One-time)",
+    effect: (gameState) => {
+      if (!gameState.autoBuyUnlocked) gameState.autoBuyUnlocked = {};
+      gameState.autoBuyUnlocked.insulation = true;
+    },
+    unlockCondition: (gs) => gs.lifetimeEntropy >= 70000,
+    isOneTime: true,
+  },
+  {
+    id: "autobuy_timeskip",
+    name: "Mallansohn's Loop",
+    initialCost: 18000,
+    costMultiplier: 1,
+    desc: "Enables auto-purchase for Temporal Compression. (One-time)",
+    effect: (gameState) => {
+      if (!gameState.autoBuyUnlocked) gameState.autoBuyUnlocked = {};
+      gameState.autoBuyUnlocked.timeskip = true;
+    },
+    unlockCondition: (gs) => gs.lifetimeEntropy >= 36000,
+    isOneTime: true,
+  },
 ];
 
 // Restart button naming progression
 export const RESTART_NAMES = [
-    // Random pool for iteration 4+
-    { name: 'Fiat Lux', language: 'Latin', translation: 'Let light be made' },
-    { name: 'Kun Fayakun', language: 'Arabic', translation: 'Be, and it is' },
-    { name: 'Koworo Koworo', language: 'Japanese', translation: '(Stirring sound)' },
-    { name: 'Om (Aum)', language: 'Vedic', translation: '(Primal hum)' },
-    { name: 'Sipapuni', language: 'Hopi', translation: 'Place of Emergence' },
-    { name: 'Kai Tian Pi Di', language: 'Chinese', translation: 'Open Sky, Split Earth' },
-    { name: 'Hanau ka Po', language: 'Hawaiian', translation: 'The Night births' },
-    { name: 'Nigredo', language: 'Alchemy', translation: 'Blackening' },
-    { name: 'Hello World', language: 'Code', translation: 'Hello World' },
-    { name: 'Tathastu', language: 'Sanskrit', translation: 'So be it' },
-    { name: 'Lu Shamamu', language: 'Akkadian', translation: 'Let heavens be' }
+  // Random pool for iteration 4+
+  { name: "Fiat Lux", language: "Latin", translation: "Let light be made" },
+  { name: "Kun Fayakun", language: "Arabic", translation: "Be, and it is" },
+  {
+    name: "Koworo Koworo",
+    language: "Japanese",
+    translation: "(Stirring sound)",
+  },
+  { name: "Om (Aum)", language: "Vedic", translation: "(Primal hum)" },
+  { name: "Sipapuni", language: "Hopi", translation: "Place of Emergence" },
+  {
+    name: "Kai Tian Pi Di",
+    language: "Chinese",
+    translation: "Open Sky, Split Earth",
+  },
+  {
+    name: "Hanau ka Po",
+    language: "Hawaiian",
+    translation: "The Night births",
+  },
+  { name: "Nigredo", language: "Alchemy", translation: "Blackening" },
+  { name: "Hello World", language: "Code", translation: "Hello World" },
+  { name: "Tathastu", language: "Sanskrit", translation: "So be it" },
+  { name: "Lu Shamamu", language: "Akkadian", translation: "Let heavens be" },
 ];
 
 // Layer system configuration
 export const PHASE_SHIFT_DM_THRESHOLD = 100; // Dark Matter needed to unlock next layer
 
 export const LAYERS = [
-    {
-        index: 0,
-        name: 'Universe',
-        particleName: 'Stars',
-        restartButton: 'Reignite Universe', // Uses RESTART_NAMES progression
-        spawnButton: null, // No spawn button at layer 0
-        timeScale: 1.0,
-        texture: 'star_dot' // Using default white circle for now
-    },
-    {
-        index: 1,
-        name: 'Multiverse',
-        particleName: 'Universes',
-        restartButton: 'Collapse Multiverse',
-        spawnButton: 'Fiat Lux', // "Let there be light" - spawn new universes
-        timeScale: 0.5, // Slower, more strategic
-        texture: 'universe_glow'
-    },
-    {
-        index: 2,
-        name: 'The Bulk',
-        particleName: 'Multiverse Bubbles',
-        restartButton: 'Reset Bulk',
-        spawnButton: 'Nucleate Bubble',
-        timeScale: 0.2,
-        texture: 'bubble_orb'
-    },
-    {
-        index: 3,
-        name: 'The Brane',
-        particleName: 'Bulk Nodes',
-        restartButton: 'Reweave Brane',
-        spawnButton: 'Thread Node',
-        timeScale: 0.05,
-        texture: 'brane_web'
-    },
-    {
-        index: 4,
-        name: 'The Absolute',
-        particleName: 'Brane Sheets',
-        restartButton: 'Reinitialize Absolute',
-        spawnButton: 'Emanate Sheet',
-        timeScale: 0.01,
-        texture: 'absolute_void'
-    }
+  {
+    index: 0,
+    name: "Universe",
+    particleName: "Stars",
+    restartButton: "Reignite Universe", // Uses RESTART_NAMES progression
+    spawnButton: null, // No spawn button at layer 0
+    timeScale: 1.0,
+    texture: "star_dot", // Using default white circle for now
+  },
+  {
+    index: 1,
+    name: "Multiverse",
+    particleName: "Universes",
+    restartButton: "Collapse Multiverse",
+    spawnButton: "Fiat Lux", // "Let there be light" - spawn new universes
+    timeScale: 0.5, // Slower, more strategic
+    texture: "universe_glow",
+  },
+  {
+    index: 2,
+    name: "The Bulk",
+    particleName: "Multiverse Bubbles",
+    restartButton: "Reset Bulk",
+    spawnButton: "Nucleate Bubble",
+    timeScale: 0.2,
+    texture: "bubble_orb",
+  },
+  {
+    index: 3,
+    name: "The Brane",
+    particleName: "Bulk Nodes",
+    restartButton: "Reweave Brane",
+    spawnButton: "Thread Node",
+    timeScale: 0.05,
+    texture: "brane_web",
+  },
+  {
+    index: 4,
+    name: "The Absolute",
+    particleName: "Brane Sheets",
+    restartButton: "Reinitialize Absolute",
+    spawnButton: "Emanate Sheet",
+    timeScale: 0.01,
+    texture: "absolute_void",
+  },
 ];

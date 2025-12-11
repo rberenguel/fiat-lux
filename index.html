@@ -1,62 +1,162 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>Fiat Lux</title>
 
     <!-- External Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/8.1.5/pixi.min.js"></script>
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
     <!-- Temperature/Timeline Bar -->
     <div id="timelineContainer">
-        <div id="timelineBar"></div>
+      <div id="timelineBar"></div>
     </div>
+
+    <!-- Menu Button -->
+    <button id="menuBtn" title="Settings & Automation (ESC)">⚙</button>
 
     <!-- Game Statistics Display -->
     <div class="controls">
-        <div id="analysisResults">
-            <div id="layerDisplay" style="color:#ffff00; font-weight:bold; margin-bottom:8px; display:none;">
-                Layer <span id="layerNumber">0</span>: <span id="layerName">Universe</span>
-            </div>
-            <div>Universe Energy: <span id="speedDisplay">100%</span></div>
-            <div>Particles: <span id="nValueLabel">10</span></div>
-            <div>Entropy: <span id="entropyDisplay">0</span> <span id="multDisplay" style="color:#a100f2; font-size:0.8em"></span></div>
-            <div id="dmRow" style="display:none; color:#a100f2">Dark Matter: <span id="dmDisplay">0</span></div>
+      <div id="analysisResults">
+        <div
+          id="layerDisplay"
+          style="
+            color: #ffff00;
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: none;
+          "
+        >
+          Layer <span id="layerNumber">0</span>:
+          <span id="layerName">Universe</span>
         </div>
+        <div>Universe Energy: <span id="speedDisplay">100%</span></div>
+        <div>Particles: <span id="nValueLabel">10</span></div>
+        <div>
+          Entropy: <span id="entropyDisplay">0</span>
+          <span
+            id="multDisplay"
+            style="color: #a100f2; font-size: 0.8em"
+          ></span>
+        </div>
+        <div id="dmRow" style="display: none; color: #a100f2">
+          Dark Matter: <span id="dmDisplay">0</span>
+        </div>
+      </div>
     </div>
 
     <!-- Shop/Upgrade Modal -->
     <div id="shopModal">
-        <h2>Universe Faded</h2>
-        <p>Entropy Collected: <span id="shopEntropy">0</span></p>
-        <div id="upgradesList"></div>
-        <button id="restartBtn">Ignite New Universe</button>
+      <h2>Universe Faded</h2>
+      <p>Entropy Collected: <span id="shopEntropy">0</span></p>
+      <div id="upgradesList"></div>
+      <button id="restartBtn">Ignite New Universe</button>
+    </div>
+
+    <!-- Menu/Settings Modal -->
+    <div id="menuModal" style="display: none">
+      <h2>Settings</h2>
+      <p style="margin-bottom: 20px; color: #aaa">Game Paused</p>
+      <h3 style="color: #00ff88; font-size: 1rem; margin-bottom: 10px">
+        Auto-Purchase
+      </h3>
+      <div id="autoBuyList"></div>
+      <button id="closeMenuBtn" style="margin-top: 20px">Resume</button>
+    </div>
+
+    <!-- Primordial Matter Tutorial Modal -->
+    <div id="primordialTutorialModal" style="display: none">
+      <h2 style="color: #ffaa00">⚡ Primordial Matter Detected</h2>
+      <p style="margin-top: 20px; line-height: 1.8">
+        During the universe's evolution, rare
+        <strong style="color: #ffaa00">Primordial Matter</strong>
+        may spontaneously manifest—unstable pockets of concentrated energy left
+        over from the Big Bang.
+      </p>
+      <p style="margin-top: 15px; line-height: 1.8">
+        These glowing orbs appear randomly throughout spacetime.
+        <strong style="color: #00ffff">Click them quickly</strong> before they
+        decay to harvest bonus entropy!
+      </p>
+      <p
+        style="
+          margin-top: 15px;
+          line-height: 1.8;
+          color: #aaa;
+          font-style: italic;
+        "
+      >
+        The faster you click, the greater the reward. Watch for their
+        distinctive golden glow.
+      </p>
+      <button
+        id="primordialTutorialBtn"
+        style="
+          margin-top: 25px;
+          padding: 14px 40px;
+          background: linear-gradient(135deg, #ffaa00, #ff6600);
+          border: none;
+          color: white;
+          font-weight: bold;
+          font-size: 1.1rem;
+        "
+      >
+        Got it!
+      </button>
     </div>
 
     <!-- Phase Shift Modal -->
-    <div id="phaseShiftModal" style="display: none;">
-        <h2 style="color: #ffff00;">Vacuum Phase Transition</h2>
-        <p>You have accumulated <span id="phaseShiftDM" style="color: #ff00ff; font-weight: bold;">100</span> Dark Matter.</p>
-        <p style="margin-top: 20px;">The fabric of reality strains under the weight of collapsed universes.</p>
-        <p>Trigger the phase transition to ascend to <span id="phaseShiftLayerName" style="color: #00ffff;">The Multiverse</span>?</p>
-        <div style="margin-top: 30px; display: flex; gap: 10px; justify-content: center;">
-            <button id="phaseShiftConfirm" style="flex: 1;">Ascend</button>
-            <button id="phaseShiftCancel" style="flex: 1; background: rgba(100, 0, 0, 0.3);">Not Yet</button>
-        </div>
+    <div id="phaseShiftModal" style="display: none">
+      <h2 style="color: #ffff00">Vacuum Phase Transition</h2>
+      <p>
+        You have accumulated
+        <span id="phaseShiftDM" style="color: #ff00ff; font-weight: bold"
+          >100</span
+        >
+        Dark Matter.
+      </p>
+      <p style="margin-top: 20px">
+        The fabric of reality strains under the weight of collapsed universes.
+      </p>
+      <p>
+        Trigger the phase transition to ascend to
+        <span id="phaseShiftLayerName" style="color: #00ffff"
+          >The Multiverse</span
+        >?
+      </p>
+      <div
+        style="
+          margin-top: 30px;
+          display: flex;
+          gap: 10px;
+          justify-content: center;
+        "
+      >
+        <button id="phaseShiftConfirm" style="flex: 1">Ascend</button>
+        <button
+          id="phaseShiftCancel"
+          style="flex: 1; background: rgba(100, 0, 0, 0.3)"
+        >
+          Not Yet
+        </button>
+      </div>
     </div>
 
     <!-- Start Modal -->
     <div id="startModal">
-        <h1 id="gameTitle">Fiat Lux</h1>
-        <button id="startBtn">Create the Universe</button>
+      <h1 id="gameTitle">Fiat Lux</h1>
+      <button id="startBtn">Create the Universe</button>
     </div>
 
     <!-- Game Script -->
     <script type="module" src="js/main.js"></script>
-</body>
+  </body>
 </html>

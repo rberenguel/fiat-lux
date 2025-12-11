@@ -1,57 +1,70 @@
-import { GameState, setGTime, syncGameStateToLayer, syncLayerToGameState, saveGame } from './state.js';
 import {
-    UPGRADES,
-    PRESTIGE_BASE_COST,
-    PRESTIGE_COST_MULTIPLIER,
-    INITIAL_BASE_TIME_SPEED,
-    INITIAL_FRICTION_COEFF,
-    INITIAL_PARTICLE_COUNT,
-    INITIAL_DECAY_RATE,
-    PHASE_SHIFT_DM_THRESHOLD,
-    LAYERS
-} from './config.js';
-import { GameLayer } from './layer.js';
-import { particleContainer } from './renderer.js';
+  GameState,
+  setGTime,
+  syncGameStateToLayer,
+  syncLayerToGameState,
+  saveGame,
+} from "./state.js";
 import {
-    uiSpeed,
-    shopModal,
-    shopEntropy,
-    upgradesList,
-    prestigeBtn,
-    phaseShiftModal,
-    phaseShiftDM,
-    phaseShiftLayerName,
-    phaseShiftConfirm,
-    phaseShiftCancel,
-    layerDisplay,
-    layerNumber,
-    layerName,
-    fiatLuxBtn
-} from './ui.js';
-import { formatNumber, getRestartButtonText } from './utils.js';
+  UPGRADES,
+  PRESTIGE_BASE_COST,
+  PRESTIGE_COST_MULTIPLIER,
+  INITIAL_BASE_TIME_SPEED,
+  INITIAL_FRICTION_COEFF,
+  INITIAL_PARTICLE_COUNT,
+  INITIAL_DECAY_RATE,
+  PHASE_SHIFT_DM_THRESHOLD,
+  LAYERS,
+} from "./config.js";
+import { GameLayer } from "./layer.js";
+import { particleContainer } from "./renderer.js";
+import {
+  uiSpeed,
+  shopModal,
+  shopEntropy,
+  upgradesList,
+  prestigeBtn,
+  phaseShiftModal,
+  phaseShiftDM,
+  phaseShiftLayerName,
+  phaseShiftConfirm,
+  phaseShiftCancel,
+  layerDisplay,
+  layerNumber,
+  layerName,
+  fiatLuxBtn,
+  menuModal,
+  menuBtn,
+  closeMenuBtn,
+  autoBuyList,
+} from "./ui.js";
+import { formatNumber, getRestartButtonText } from "./utils.js";
+import { resetPrimordialMatterCounters } from "./primordial.js";
 
 // Current upgrade costs (will be modified during gameplay)
 // Made mutable so it can be restored from save
-export let upgradeCosts = UPGRADES.map(u => u.initialCost);
+export let upgradeCosts = UPGRADES.map((u) => u.initialCost);
 
 /**
  * Restore upgrade costs from save data
  */
 export function restoreUpgradeCosts(purchaseCounts) {
-    UPGRADES.forEach((u, index) => {
-        const purchaseCount = purchaseCounts[u.id] || 0;
-        upgradeCosts[index] = u.initialCost * Math.pow(u.costMultiplier, purchaseCount);
-    });
+  UPGRADES.forEach((u, index) => {
+    const purchaseCount = purchaseCounts[u.id] || 0;
+    upgradeCosts[index] =
+      u.initialCost * Math.pow(u.costMultiplier, purchaseCount);
+  });
 }
 
 /**
  * Track upgrade purchase in save data
  */
 function trackUpgradePurchase(upgradeId) {
-    if (!GameState.upgradePurchaseCounts) {
-        GameState.upgradePurchaseCounts = {};
-    }
-    GameState.upgradePurchaseCounts[upgradeId] = (GameState.upgradePurchaseCounts[upgradeId] || 0) + 1;
+  if (!GameState.upgradePurchaseCounts) {
+    GameState.upgradePurchaseCounts = {};
+  }
+  GameState.upgradePurchaseCounts[upgradeId] =
+    (GameState.upgradePurchaseCounts[upgradeId] || 0) + 1;
 }
 
 // Store reference to restart button
@@ -61,317 +74,604 @@ let restartButtonRef = null;
  * Start a new epoch (universe cycle)
  */
 export function startEpoch() {
-    GameState.currentTimeSpeed = GameState.baseTimeSpeed;
-    GameState.currentActiveParticles = GameState.particleCount;
-    GameState.isRunning = true;
-    GameState.isFrozen = false;
+  GameState.currentTimeSpeed = GameState.baseTimeSpeed;
+  GameState.currentActiveParticles = GameState.particleCount;
+  GameState.isRunning = true;
+  GameState.isFrozen = false;
 
-    // Sync to active layer
-    syncGameStateToLayer();
+  // Reset primordial matter counters for new universe
+  resetPrimordialMatterCounters();
 
-    setGTime(-10 + 20 * Math.random());
-    particleContainer.alpha = 1.0;
-    shopModal.style.display = 'none';
+  // Sync to active layer
+  syncGameStateToLayer();
+
+  setGTime(-10 + 20 * Math.random());
+  particleContainer.alpha = 1.0;
+  shopModal.style.display = "none";
 }
 
 /**
  * Trigger the big freeze (end of universe)
  */
 export function triggerBigFreeze() {
-    if (GameState.isFrozen) return;
-    GameState.isFrozen = true;
+  if (GameState.isFrozen) return;
+  GameState.isFrozen = true;
 
-    setTimeout(() => {
-        GameState.isRunning = false;
-        shopModal.style.display = 'block';
-        shopEntropy.textContent = formatNumber(GameState.entropy);
-        renderShop(restartButtonRef);
-    }, 1000);
+  setTimeout(() => {
+    GameState.isRunning = false;
+
+    // Check if any auto-buy is unlocked and enabled
+    const hasActiveAutoBuy =
+      GameState.autoBuyUnlocked &&
+      GameState.autoBuyEnabled &&
+      Object.keys(GameState.autoBuyEnabled).some(
+        (key) => GameState.autoBuyEnabled[key],
+      );
+
+    if (hasActiveAutoBuy) {
+      // Increment restart count before getting text
+      GameState.restartCount++;
+
+      // Show transition overlay with restart text
+      const buttonText = getRestartButtonText(GameState.restartCount);
+      const overlay = document.createElement("div");
+      overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.95);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                z-index: 200;
+                animation: fadeInOut 2s ease-in-out;
+            `;
+
+      const mainText = document.createElement("div");
+      mainText.style.cssText = `
+                font-family: 'Cinzel', serif;
+                font-size: 4rem;
+                color: #00ffff;
+                text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+                margin-bottom: 20px;
+            `;
+      mainText.textContent = buttonText.main;
+
+      overlay.appendChild(mainText);
+
+      if (buttonText.sub) {
+        const subText = document.createElement("div");
+        subText.style.cssText = `
+                    font-family: 'Cinzel', serif;
+                    font-size: 1.5rem;
+                    color: rgba(0, 255, 255, 0.6);
+                    font-style: italic;
+                `;
+        subText.textContent = buttonText.sub;
+        overlay.appendChild(subText);
+      }
+
+      document.body.appendChild(overlay);
+
+      // Auto-restart after animation
+      setTimeout(() => {
+        overlay.remove();
+        startEpoch();
+      }, 2000);
+    } else {
+      // Show shop for manual restart
+      shopModal.style.display = "block";
+      shopEntropy.textContent = formatNumber(GameState.entropy);
+      renderShop(restartButtonRef);
+    }
+  }, 1000);
 }
 
 /**
  * Check if universe should end
  */
 export function checkDeathConditions() {
-    if (GameState.currentTimeSpeed <= 0 || GameState.currentActiveParticles <= 0) {
-        GameState.currentTimeSpeed = 0;
-        uiSpeed.textContent = GameState.currentActiveParticles <= 0 ? "ENTROPY MAX" : "HEAT DEATH";
-        triggerBigFreeze();
-        return true;
-    }
-    return false;
+  if (
+    GameState.currentTimeSpeed <= 0 ||
+    GameState.currentActiveParticles <= 0
+  ) {
+    GameState.currentTimeSpeed = 0;
+    uiSpeed.textContent = "HEAT DEATH";
+    triggerBigFreeze();
+    return true;
+  }
+  return false;
 }
 
 /**
  * Render the shop/upgrade interface
  */
 function renderShop(restartBtn) {
-    // Update shop title based on layer
-    const shopTitle = shopModal.querySelector('h2');
-    if (GameState.activeLayerIndex > 0) {
-        const layerConfig = LAYERS[GameState.activeLayerIndex];
-        shopTitle.textContent = `${layerConfig.name} Faded`;
-    } else {
-        shopTitle.textContent = 'Universe Faded';
+  // Update shop title based on layer
+  const shopTitle = shopModal.querySelector("h2");
+  if (GameState.activeLayerIndex > 0) {
+    const layerConfig = LAYERS[GameState.activeLayerIndex];
+    shopTitle.textContent = `${layerConfig.name} Faded`;
+  } else {
+    shopTitle.textContent = "Universe Faded";
+  }
+
+  upgradesList.innerHTML = "";
+
+  UPGRADES.forEach((u, index) => {
+    // Only show upgrade if its unlock condition is met
+    if (u.unlockCondition && !u.unlockCondition(GameState)) {
+      return;
     }
 
-    upgradesList.innerHTML = '';
-
-    UPGRADES.forEach((u, index) => {
-        const btn = document.createElement('button');
-        btn.className = 'upgrade-btn';
-        btn.innerHTML = `<strong>${u.name}</strong><br><small>${u.desc}</small><br>Cost: ${formatNumber(upgradeCosts[index])} Entropy`;
-
-        if (GameState.entropy < upgradeCosts[index]) {
-            btn.disabled = true;
-        }
-
-        btn.onclick = () => {
-            if (GameState.entropy >= upgradeCosts[index]) {
-                GameState.entropy -= upgradeCosts[index];
-                u.effect(GameState);
-                upgradeCosts[index] *= u.costMultiplier;
-
-                // Track purchase for save/load
-                trackUpgradePurchase(u.id);
-
-                // Sync changes to active layer
-                syncGameStateToLayer();
-
-                shopEntropy.textContent = formatNumber(GameState.entropy);
-                renderShop(restartBtn);
-
-                // Auto-save after upgrade purchase
-                saveGame();
-            }
-        };
-        upgradesList.appendChild(btn);
-    });
-
-    // Prestige button - only show after reaching 1000 entropy
-    const PRESTIGE_THRESHOLD = 1000;
-    if (GameState.entropy >= PRESTIGE_THRESHOLD) {
-        const PRESTIGE_COST = PRESTIGE_BASE_COST * Math.pow(PRESTIGE_COST_MULTIPLIER, GameState.prestigeLevel);
-        const canPrestige = GameState.entropy >= PRESTIGE_COST;
-
-        prestigeBtn.style.display = 'block';
-        prestigeBtn.innerHTML = `<strong>BIG CRUNCH</strong><br><small>Collapse Universe.</small><br>Req: ${formatNumber(PRESTIGE_COST)}<br><span style="color:#ff00ff">+1 Dark Matter</span>`;
-        prestigeBtn.disabled = !canPrestige;
-
-        prestigeBtn.onclick = () => {
-            if (confirm("Collapse the universe?")) {
-                performPrestige();
-                saveGame(); // Auto-save after prestige
-            }
-        };
-    } else {
-        prestigeBtn.style.display = 'none';
+    // Hide one-time upgrades that have already been purchased
+    if (u.isOneTime) {
+      const purchaseCount =
+        (GameState.upgradePurchaseCounts &&
+          GameState.upgradePurchaseCounts[u.id]) ||
+        0;
+      if (purchaseCount > 0) {
+        return;
+      }
     }
 
-    // Fiat Lux button - only show at Layer 1+
-    if (GameState.activeLayerIndex > 0) {
-        const FIAT_LUX_BASE_COST = 100;
-        const FIAT_LUX_MULTIPLIER = 1.5;
-        const fiatLuxCost = FIAT_LUX_BASE_COST * Math.pow(FIAT_LUX_MULTIPLIER, GameState.particleCount - 1);
-        const canFiatLux = GameState.darkMatter >= fiatLuxCost;
+    // Create wrapper for upgrade + auto-buy toggle
+    const upgradeWrapper = document.createElement("div");
+    upgradeWrapper.style.cssText =
+      "display: flex; align-items: center; gap: 10px; margin: 10px 0;";
 
-        fiatLuxBtn.style.display = 'block';
-        fiatLuxBtn.innerHTML = `<strong>FIAT LUX</strong><br><small>Spawn new Universe.</small><br>Cost: ${formatNumber(fiatLuxCost)} Dark Matter<br><span style="color:#00ffff">+1 Universe Particle</span>`;
-        fiatLuxBtn.disabled = !canFiatLux;
+    const btn = document.createElement("button");
+    btn.className = "upgrade-btn";
+    btn.style.cssText = "flex: 1; margin: 0;";
+    btn.innerHTML = `<strong>${u.name}</strong><br><small>${u.desc}</small><br>Cost: ${formatNumber(upgradeCosts[index])} Entropy`;
 
-        fiatLuxBtn.onclick = () => {
-            if (GameState.darkMatter >= fiatLuxCost) {
-                GameState.darkMatter -= fiatLuxCost;
-                GameState.particleCount += 1;
-                syncGameStateToLayer();
-                renderShop(restartBtn);
-                saveGame(); // Auto-save after Fiat Lux purchase
-            }
-        };
-    } else {
-        fiatLuxBtn.style.display = 'none';
+    if (GameState.entropy < upgradeCosts[index]) {
+      btn.disabled = true;
     }
 
-    // Update restart button text
-    updateRestartButtonText(restartBtn);
+    btn.onclick = () => {
+      if (GameState.entropy >= upgradeCosts[index]) {
+        GameState.entropy -= upgradeCosts[index];
+        u.effect(GameState);
+        upgradeCosts[index] *= u.costMultiplier;
+
+        // Track purchase for save/load
+        trackUpgradePurchase(u.id);
+
+        // Sync changes to active layer
+        syncGameStateToLayer();
+
+        shopEntropy.textContent = formatNumber(GameState.entropy);
+        renderShop(restartBtn);
+
+        // Auto-save after upgrade purchase
+        saveGame();
+      }
+    };
+    upgradeWrapper.appendChild(btn);
+
+    // Add auto-buy toggle if unlocked
+    if (!GameState.autoBuyUnlocked) GameState.autoBuyUnlocked = {};
+    if (!GameState.autoBuyEnabled) GameState.autoBuyEnabled = {};
+
+    const autoBuyUnlocked = GameState.autoBuyUnlocked[u.id] || false;
+
+    if (autoBuyUnlocked) {
+      const toggleLabel = document.createElement("label");
+      toggleLabel.className = "autobuy-toggle";
+      toggleLabel.title = "Auto-buy";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = GameState.autoBuyEnabled[u.id] || false;
+
+      checkbox.onchange = () => {
+        GameState.autoBuyEnabled[u.id] = checkbox.checked;
+        saveGame();
+      };
+
+      const slider = document.createElement("span");
+      slider.className = "autobuy-toggle-slider";
+
+      toggleLabel.appendChild(checkbox);
+      toggleLabel.appendChild(slider);
+      upgradeWrapper.appendChild(toggleLabel);
+    }
+
+    upgradesList.appendChild(upgradeWrapper);
+  });
+
+  // Prestige button - only show after reaching 1000 entropy
+  const PRESTIGE_THRESHOLD = 1000;
+  if (GameState.entropy >= PRESTIGE_THRESHOLD) {
+    const PRESTIGE_COST =
+      PRESTIGE_BASE_COST *
+      Math.pow(PRESTIGE_COST_MULTIPLIER, GameState.prestigeLevel);
+    const canPrestige = GameState.entropy >= PRESTIGE_COST;
+
+    prestigeBtn.style.display = "block";
+    prestigeBtn.innerHTML = `<strong>BIG CRUNCH</strong><br><small>Collapse Universe.</small><br>Req: ${formatNumber(PRESTIGE_COST)}<br><span style="color:#ff00ff">+1 Dark Matter</span>`;
+    prestigeBtn.disabled = !canPrestige;
+
+    prestigeBtn.onclick = () => {
+      if (confirm("Collapse the universe?")) {
+        performPrestige();
+        saveGame(); // Auto-save after prestige
+      }
+    };
+  } else {
+    prestigeBtn.style.display = "none";
+  }
+
+  // Fiat Lux button - only show at Layer 1+
+  if (GameState.activeLayerIndex > 0) {
+    const FIAT_LUX_BASE_COST = 100;
+    const FIAT_LUX_MULTIPLIER = 1.5;
+    const fiatLuxCost =
+      FIAT_LUX_BASE_COST *
+      Math.pow(FIAT_LUX_MULTIPLIER, GameState.particleCount - 1);
+    const canFiatLux = GameState.darkMatter >= fiatLuxCost;
+
+    fiatLuxBtn.style.display = "block";
+    fiatLuxBtn.innerHTML = `<strong>FIAT LUX</strong><br><small>Spawn new Universe.</small><br>Cost: ${formatNumber(fiatLuxCost)} Dark Matter<br><span style="color:#00ffff">+1 Universe Particle</span>`;
+    fiatLuxBtn.disabled = !canFiatLux;
+
+    fiatLuxBtn.onclick = () => {
+      if (GameState.darkMatter >= fiatLuxCost) {
+        GameState.darkMatter -= fiatLuxCost;
+        GameState.particleCount += 1;
+        syncGameStateToLayer();
+        renderShop(restartBtn);
+        saveGame(); // Auto-save after Fiat Lux purchase
+      }
+    };
+  } else {
+    fiatLuxBtn.style.display = "none";
+  }
+
+  // Update restart button text
+  updateRestartButtonText(restartBtn);
 }
 
 /**
  * Perform prestige (big crunch)
  */
 function performPrestige() {
-    GameState.prestigeLevel++;
-    GameState.darkMatter++;
+  GameState.lifetimeEntropy += GameState.entropy;
+  GameState.prestigeLevel++;
+  GameState.darkMatter++;
 
-    // Reset game state
-    GameState.entropy = 0;
-    GameState.particleCount = INITIAL_PARTICLE_COUNT;
-    GameState.baseTimeSpeed = INITIAL_BASE_TIME_SPEED;
-    GameState.frictionCoeff = INITIAL_FRICTION_COEFF;
-    GameState.decayRate = INITIAL_DECAY_RATE;
+  // Reset game state
+  GameState.entropy = 0;
+  GameState.particleCount = INITIAL_PARTICLE_COUNT;
+  GameState.baseTimeSpeed = INITIAL_BASE_TIME_SPEED;
+  GameState.frictionCoeff = INITIAL_FRICTION_COEFF;
+  GameState.decayRate = INITIAL_DECAY_RATE;
 
-    // Reset upgrade costs
-    UPGRADES.forEach((u, index) => {
-        upgradeCosts[index] = u.initialCost;
-    });
+  // Reset upgrade costs
+  UPGRADES.forEach((u, index) => {
+    upgradeCosts[index] = u.initialCost;
+  });
 
-    // Sync changes to active layer
-    syncGameStateToLayer();
+  // Sync changes to active layer
+  syncGameStateToLayer();
 
-    // Check if we should trigger phase shift
-    checkPhaseShift();
+  // Check if we should trigger phase shift
+  checkPhaseShift();
 
-    startEpoch();
+  startEpoch();
 }
 
 /**
  * Check if player has enough Dark Matter to unlock next layer
  */
 export function checkPhaseShift() {
-    const nextLayerIndex = GameState.activeLayerIndex + 1;
+  const nextLayerIndex = GameState.activeLayerIndex + 1;
 
-    // Check if next layer exists and we have enough DM
-    if (nextLayerIndex < LAYERS.length &&
-        GameState.darkMatter >= PHASE_SHIFT_DM_THRESHOLD) {
+  // Check if next layer exists and we have enough DM
+  if (
+    nextLayerIndex < LAYERS.length &&
+    GameState.darkMatter >= PHASE_SHIFT_DM_THRESHOLD
+  ) {
+    // Show phase shift modal
+    phaseShiftDM.textContent = Math.floor(GameState.darkMatter);
+    phaseShiftLayerName.textContent = LAYERS[nextLayerIndex].name;
+    phaseShiftModal.style.display = "block";
 
-        // Show phase shift modal
-        phaseShiftDM.textContent = Math.floor(GameState.darkMatter);
-        phaseShiftLayerName.textContent = LAYERS[nextLayerIndex].name;
-        phaseShiftModal.style.display = 'block';
+    // Setup button handlers (one-time use)
+    phaseShiftConfirm.onclick = () => {
+      phaseShiftModal.style.display = "none";
+      performPhaseShift();
+    };
 
-        // Setup button handlers (one-time use)
-        phaseShiftConfirm.onclick = () => {
-            phaseShiftModal.style.display = 'none';
-            performPhaseShift();
-        };
-
-        phaseShiftCancel.onclick = () => {
-            phaseShiftModal.style.display = 'none';
-        };
-    }
+    phaseShiftCancel.onclick = () => {
+      phaseShiftModal.style.display = "none";
+    };
+  }
 }
 
 /**
  * Perform the phase shift to next layer
  */
 function performPhaseShift() {
-    const nextLayerIndex = GameState.activeLayerIndex + 1;
-    if (nextLayerIndex >= LAYERS.length) return;
+  const nextLayerIndex = GameState.activeLayerIndex + 1;
+  if (nextLayerIndex >= LAYERS.length) return;
 
-    const nextLayerConfig = LAYERS[nextLayerIndex];
+  const nextLayerConfig = LAYERS[nextLayerIndex];
 
-    // Pause the game during transition
-    GameState.isRunning = false;
+  // Pause the game during transition
+  GameState.isRunning = false;
 
-    // Set pivot to center for proper scaling
-    const centerX = particleContainer.parent.width / 2;
-    const centerY = particleContainer.parent.height / 2;
-    particleContainer.pivot.set(centerX, centerY);
-    particleContainer.position.set(centerX, centerY);
+  // Set pivot to center for proper scaling
+  const centerX = particleContainer.parent.width / 2;
+  const centerY = particleContainer.parent.height / 2;
+  particleContainer.pivot.set(centerX, centerY);
+  particleContainer.position.set(centerX, centerY);
 
-    // Zoom-out animation: shrink and fade the current universe
-    const duration = 2000; // 2 seconds
-    const startTime = Date.now();
+  // Zoom-out animation: shrink and fade the current universe
+  const duration = 2000; // 2 seconds
+  const startTime = Date.now();
 
-    const animateZoomOut = () => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
+  const animateZoomOut = () => {
+    const elapsed = Date.now() - startTime;
+    const progress = Math.min(elapsed / duration, 1);
 
-        // Easing function (ease-in-out)
-        const eased = progress < 0.5
-            ? 2 * progress * progress
-            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+    // Easing function (ease-in-out)
+    const eased =
+      progress < 0.5
+        ? 2 * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
 
-        // Scale down and fade out
-        particleContainer.scale.set(1 - eased * 0.99); // Scale to almost 0
-        particleContainer.alpha = 1 - eased; // Fade out
+    // Scale down and fade out
+    particleContainer.scale.set(1 - eased * 0.99); // Scale to almost 0
+    particleContainer.alpha = 1 - eased; // Fade out
 
-        if (progress < 1) {
-            requestAnimationFrame(animateZoomOut);
-        } else {
-            // Animation complete - transition to new layer
-            completePhaseShift(nextLayerIndex, nextLayerConfig);
-        }
-    };
+    if (progress < 1) {
+      requestAnimationFrame(animateZoomOut);
+    } else {
+      // Animation complete - transition to new layer
+      completePhaseShift(nextLayerIndex, nextLayerConfig);
+    }
+  };
 
-    animateZoomOut();
+  animateZoomOut();
 }
 
 /**
  * Complete the phase shift after animation
  */
 function completePhaseShift(nextLayerIndex, nextLayerConfig) {
-    // Create new layer
-    const newLayer = new GameLayer(nextLayerIndex, nextLayerConfig);
+  // Create new layer
+  const newLayer = new GameLayer(nextLayerIndex, nextLayerConfig);
 
-    // Consume Dark Matter and transfer remaining
-    newLayer.darkMatter = GameState.darkMatter - PHASE_SHIFT_DM_THRESHOLD;
+  // Consume Dark Matter and transfer remaining
+  newLayer.darkMatter = GameState.darkMatter - PHASE_SHIFT_DM_THRESHOLD;
 
-    // Layer 1+ starts with minimal particles (representing universes, not stars)
-    // Start with 1 particle = the universe you just left
-    if (nextLayerIndex > 0) {
-        newLayer.particleCount = 1;
-    }
+  // Layer 1+ starts with minimal particles (representing universes, not stars)
+  // Start with 1 particle = the universe you just left
+  if (nextLayerIndex > 0) {
+    newLayer.particleCount = 1;
+  }
 
-    // Update active layer
-    GameState.activeLayerIndex = nextLayerIndex;
-    GameState.activeLayer = newLayer;
+  // Update active layer
+  GameState.activeLayerIndex = nextLayerIndex;
+  GameState.activeLayer = newLayer;
 
-    // Sync new layer state to GameState
-    syncLayerToGameState();
+  // Sync new layer state to GameState
+  syncLayerToGameState();
 
-    // Update layer display (show for Layer 1+)
-    if (nextLayerIndex > 0) {
-        layerDisplay.style.display = 'block';
-        layerNumber.textContent = nextLayerIndex;
-        layerName.textContent = nextLayerConfig.name;
-    }
+  // Update layer display (show for Layer 1+)
+  if (nextLayerIndex > 0) {
+    layerDisplay.style.display = "block";
+    layerNumber.textContent = nextLayerIndex;
+    layerName.textContent = nextLayerConfig.name;
+  }
 
-    // Reset particle container scale, alpha, pivot, and position
-    particleContainer.scale.set(1);
-    particleContainer.alpha = 1;
-    particleContainer.pivot.set(0, 0);
-    particleContainer.position.set(0, 0);
+  // Reset particle container scale, alpha, pivot, and position
+  particleContainer.scale.set(1);
+  particleContainer.alpha = 1;
+  particleContainer.pivot.set(0, 0);
+  particleContainer.position.set(0, 0);
 
-    // Auto-save after phase shift
-    saveGame();
+  // Auto-save after phase shift
+  saveGame();
 
-    // Start new epoch
-    startEpoch();
+  // Start new epoch
+  startEpoch();
 }
-
 
 /**
  * Setup restart button handler
  */
 export function setupRestartButton(restartBtn) {
-    restartButtonRef = restartBtn;
+  restartButtonRef = restartBtn;
 
-    restartBtn.onclick = () => {
-        GameState.restartCount++;
-        startEpoch();
-    };
+  restartBtn.onclick = () => {
+    GameState.restartCount++;
+    startEpoch();
+  };
 
-    // Set initial button text
-    updateRestartButtonText(restartBtn);
+  // Set initial button text
+  updateRestartButtonText(restartBtn);
 }
 
 /**
  * Update restart button text based on current restart count and layer
  */
 export function updateRestartButtonText(restartBtn) {
-    // Layer 1+ uses different restart text
-    if (GameState.activeLayerIndex > 0) {
-        const layerConfig = LAYERS[GameState.activeLayerIndex];
-        restartBtn.textContent = layerConfig.restartButton || 'Restart';
-    } else {
-        // Layer 0 uses naming progression
-        const buttonText = getRestartButtonText(GameState.restartCount);
+  // Layer 1+ uses different restart text
+  if (GameState.activeLayerIndex > 0) {
+    const layerConfig = LAYERS[GameState.activeLayerIndex];
+    restartBtn.textContent = layerConfig.restartButton || "Restart";
+  } else {
+    // Layer 0 uses naming progression
+    const buttonText = getRestartButtonText(GameState.restartCount);
 
-        if (buttonText.sub) {
-            restartBtn.innerHTML = `${buttonText.main}<br><small class="restart-translation" style="font-size:0.8em; opacity:0.8">${buttonText.sub}</small>`;
-        } else {
-            restartBtn.textContent = buttonText.main;
-        }
+    if (buttonText.sub) {
+      restartBtn.innerHTML = `${buttonText.main}<br><small class="restart-translation" style="font-size:0.8em; opacity:0.8">${buttonText.sub}</small>`;
+    } else {
+      restartBtn.textContent = buttonText.main;
     }
+  }
+}
+
+// ============================================================
+// MENU & AUTOMATION SYSTEM
+// ============================================================
+
+let wasRunningBeforeMenu = false;
+
+/**
+ * Open the menu modal and pause the game
+ */
+export function openMenu() {
+  wasRunningBeforeMenu = GameState.isRunning;
+  GameState.isRunning = false;
+  renderMenu();
+  menuModal.style.display = "block";
+}
+
+/**
+ * Close the menu modal and resume the game
+ */
+export function closeMenu() {
+  menuModal.style.display = "none";
+  if (wasRunningBeforeMenu && !GameState.isFrozen) {
+    GameState.isRunning = true;
+  }
+}
+
+/**
+ * Render the menu with auto-buy toggles for each upgrade
+ */
+function renderMenu() {
+  autoBuyList.innerHTML = "";
+
+  // Initialize state if not exists
+  if (!GameState.autoBuyEnabled) {
+    GameState.autoBuyEnabled = {};
+  }
+  if (!GameState.autoBuyUnlocked) {
+    GameState.autoBuyUnlocked = {};
+  }
+
+  UPGRADES.forEach((upgrade, index) => {
+    // Skip auto-buy unlock upgrades themselves
+    if (upgrade.id.startsWith("autobuy_")) return;
+
+    const isUnlocked = upgrade.unlockCondition
+      ? upgrade.unlockCondition(GameState)
+      : true;
+    const autoBuyUnlocked = GameState.autoBuyUnlocked[upgrade.id] || false;
+
+    const item = document.createElement("div");
+    item.className =
+      "autobuy-item" +
+      (isUnlocked && autoBuyUnlocked ? "" : " autobuy-item-locked");
+
+    const label = document.createElement("div");
+    label.className = "autobuy-label";
+
+    let statusText = "";
+    if (!isUnlocked) {
+      statusText = " (Upgrade Locked)";
+    } else if (!autoBuyUnlocked) {
+      statusText = " (Auto-buy Locked)";
+    }
+
+    const cost = upgradeCosts[index];
+    const costDisplay = `<span style="opacity: 0.7; font-size: 0.9em;"> — ${formatNumber(cost)} Entropy</span>`;
+    label.innerHTML = `<strong>${upgrade.name}</strong>${costDisplay}${statusText}`;
+
+    const toggle = document.createElement("label");
+    toggle.className = "autobuy-toggle";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = GameState.autoBuyEnabled[upgrade.id] || false;
+    checkbox.disabled = !isUnlocked || !autoBuyUnlocked;
+
+    checkbox.onchange = () => {
+      GameState.autoBuyEnabled[upgrade.id] = checkbox.checked;
+      saveGame();
+    };
+
+    const slider = document.createElement("span");
+    slider.className = "autobuy-toggle-slider";
+
+    toggle.appendChild(checkbox);
+    toggle.appendChild(slider);
+
+    item.appendChild(label);
+    item.appendChild(toggle);
+    autoBuyList.appendChild(item);
+  });
+}
+
+/**
+ * Initialize menu button and keyboard shortcuts
+ */
+export function initializeMenu() {
+  // Menu button click
+  menuBtn.onclick = () => {
+    openMenu();
+  };
+
+  // Close button click
+  closeMenuBtn.onclick = () => {
+    closeMenu();
+  };
+
+  // ESC key to toggle menu
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      if (menuModal.style.display === "block") {
+        closeMenu();
+      } else if (
+        shopModal.style.display !== "block" &&
+        phaseShiftModal.style.display !== "block"
+      ) {
+        // Only open menu if no other modal is open
+        openMenu();
+      }
+    }
+  });
+}
+
+/**
+ * Check and auto-purchase enabled upgrades if affordable
+ * Called from game loop
+ */
+export function processAutoBuys() {
+  if (!GameState.autoBuyEnabled) return;
+
+  UPGRADES.forEach((upgrade, index) => {
+    // Skip auto-buy unlock upgrades themselves
+    if (upgrade.id.startsWith("autobuy_")) return;
+
+    // Check if auto-buy is enabled for this upgrade
+    if (!GameState.autoBuyEnabled[upgrade.id]) return;
+
+    // Check if upgrade is unlocked
+    const isUnlocked = upgrade.unlockCondition
+      ? upgrade.unlockCondition(GameState)
+      : true;
+    if (!isUnlocked) return;
+
+    // Buy as many as we can afford
+    while (GameState.entropy >= upgradeCosts[index]) {
+      GameState.entropy -= upgradeCosts[index];
+      upgrade.effect(GameState);
+      upgradeCosts[index] *= upgrade.costMultiplier;
+
+      // Track purchase for save/load
+      trackUpgradePurchase(upgrade.id);
+    }
+  });
+
+  // Sync once after all purchases
+  syncGameStateToLayer();
 }
