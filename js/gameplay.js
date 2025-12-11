@@ -74,10 +74,28 @@ let restartButtonRef = null;
  * Start a new epoch (universe cycle)
  */
 export function startEpoch() {
+  // Calculate and award vacuum energy from previous run
+  // (only if this is a restart, not the first universe)
+  if (GameState.restartCount > 0 && GameState.universeRunDuration > 0) {
+    const BASE_VACUUM_RATE = 0.002; // 0.002 vacuum per second
+    const vacuumEarned =
+      GameState.universeRunDuration *
+      BASE_VACUUM_RATE *
+      GameState.vacuumEnergyMultiplier;
+    GameState.vacuumEnergy += vacuumEarned;
+
+    console.log(
+      `🌌 Vacuum Energy Earned: ${vacuumEarned.toFixed(3)} (${GameState.universeRunDuration.toFixed(1)}s run)`,
+    );
+  }
+
   GameState.currentTimeSpeed = GameState.baseTimeSpeed;
   GameState.currentActiveParticles = GameState.particleCount;
   GameState.isRunning = true;
   GameState.isFrozen = false;
+
+  // Reset universe run duration for new cycle
+  GameState.universeRunDuration = 0;
 
   // Reset primordial matter counters for new universe
   resetPrimordialMatterCounters();
@@ -229,15 +247,33 @@ function renderShop(restartBtn) {
     const btn = document.createElement("button");
     btn.className = "upgrade-btn";
     btn.style.cssText = "flex: 1; margin: 0;";
-    btn.innerHTML = `<strong>${u.name}</strong><br><small>${u.desc}</small><br>Cost: ${formatNumber(upgradeCosts[index])} Entropy`;
 
-    if (GameState.entropy < upgradeCosts[index]) {
+    // Determine cost type and currency
+    const costType = u.costType || "entropy";
+    const isVacuumCost = costType === "vacuum";
+    const currentCurrency = isVacuumCost
+      ? GameState.vacuumEnergy
+      : GameState.entropy;
+    const currencyLabel = isVacuumCost ? "Vacuum" : "Entropy";
+    const costDisplay = isVacuumCost
+      ? upgradeCosts[index].toFixed(3)
+      : formatNumber(upgradeCosts[index]);
+
+    btn.innerHTML = `<strong>${u.name}</strong><br><small>${u.desc}</small><br>Cost: ${costDisplay} ${currencyLabel}`;
+
+    if (currentCurrency < upgradeCosts[index]) {
       btn.disabled = true;
     }
 
     btn.onclick = () => {
-      if (GameState.entropy >= upgradeCosts[index]) {
-        GameState.entropy -= upgradeCosts[index];
+      if (currentCurrency >= upgradeCosts[index]) {
+        // Deduct cost from appropriate currency
+        if (isVacuumCost) {
+          GameState.vacuumEnergy -= upgradeCosts[index];
+        } else {
+          GameState.entropy -= upgradeCosts[index];
+        }
+
         u.effect(GameState);
         upgradeCosts[index] *= u.costMultiplier;
 

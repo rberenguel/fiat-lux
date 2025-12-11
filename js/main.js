@@ -28,6 +28,8 @@ import {
   nValueLabel,
   dmRow,
   dmDisplay,
+  vacuumRow,
+  vacuumDisplay,
   restartBtn,
 } from "./ui.js";
 import { formatNumber } from "./utils.js";
@@ -150,6 +152,9 @@ import {
     // Track total playtime (deltaTime is 1.0 at 60fps = 1/60 second)
     GameState.totalPlayTime += ticker.deltaTime / 60;
 
+    // Track universe run duration (for vacuum energy calculation)
+    GameState.universeRunDuration += ticker.deltaTime / 60;
+
     // Normalize for frame rate - deltaTime is 1.0 at 60fps
     // Apply time multiplier for fast forward
     const dt = ticker.deltaTime * GameState.timeMultiplier;
@@ -238,6 +243,11 @@ import {
       if (GameState.darkMatter > 0) {
         dmRow.style.display = "block";
         dmDisplay.textContent = GameState.darkMatter;
+      }
+
+      if (GameState.vacuumEnergy > 0) {
+        vacuumRow.style.display = "block";
+        vacuumDisplay.textContent = GameState.vacuumEnergy.toFixed(3);
       }
 
       incrementGTime(GameState.currentTimeSpeed * dt); // Normalize for frame rate

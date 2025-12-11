@@ -149,6 +149,34 @@ export const UPGRADES = [
     unlockCondition: (gs) => gs.lifetimeEntropy >= 15000,
     isOneTime: true,
   },
+  // VACUUM ENERGY UPGRADES
+  {
+    id: "vacuum_extraction",
+    name: "Vacuum Extraction",
+    initialCost: 0.5,
+    costMultiplier: 2.0,
+    desc: "Increases vacuum energy gain by 50%.",
+    effect: (gameState) => {
+      gameState.vacuumEnergyMultiplier *= 1.5;
+    },
+    unlockCondition: (gs) => gs.vacuumEnergy >= 0.3,
+    costType: "vacuum", // NEW: Different currency
+  },
+  {
+    id: "entropy_efficiency",
+    name: "Entropy Efficiency",
+    initialCost: 2.0,
+    costMultiplier: 1,
+    desc: "All entropy upgrade costs reduced by 10%. (One-time)",
+    effect: (gameState) => {
+      // Will need to implement cost reduction system
+      if (!gameState.entropyCostReduction) gameState.entropyCostReduction = 0;
+      gameState.entropyCostReduction += 0.1;
+    },
+    unlockCondition: (gs) => gs.vacuumEnergy >= 1.0,
+    costType: "vacuum",
+    isOneTime: true,
+  },
   // AUTO-BUY UNLOCK UPGRADES
   {
     id: "autobuy_mass",

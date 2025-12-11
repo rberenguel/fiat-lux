@@ -21,6 +21,7 @@ export const GameState = {
   darkMatter: 0,
   prestigeLevel: 0,
   lifetimeEntropy: 0,
+  vacuumEnergy: 0, // Earned from universe lifespan at restart
 
   // Physics / Stats
   baseTimeSpeed: INITIAL_BASE_TIME_SPEED,
@@ -55,6 +56,10 @@ export const GameState = {
   hasNucleosynthesis: false, // Stellar Nucleosynthesis upgrade
   hasPrimordialAttunement: false, // Increases primordial matter spawn rate
   primordialEntropyBonus: 0.02, // Base 2% of current entropy as bonus
+
+  // Universe run tracking
+  universeRunDuration: 0, // Seconds the current universe has been alive
+  vacuumEnergyMultiplier: 1.0, // Can be boosted by upgrades
 };
 
 /**
@@ -160,6 +165,7 @@ export async function saveGame() {
     darkMatter: layer.darkMatter,
     prestigeLevel: layer.prestigeLevel,
     lifetimeEntropy: GameState.lifetimeEntropy || 0,
+    vacuumEnergy: GameState.vacuumEnergy || 0,
     particleCount: layer.particleCount,
     baseTimeSpeed: layer.baseTimeSpeed,
     frictionCoeff: layer.frictionCoeff,
@@ -187,6 +193,9 @@ export async function saveGame() {
     hasNucleosynthesis: GameState.hasNucleosynthesis || false,
     hasPrimordialAttunement: GameState.hasPrimordialAttunement || false,
     primordialEntropyBonus: GameState.primordialEntropyBonus || 0.02,
+
+    // Vacuum energy system
+    vacuumEnergyMultiplier: GameState.vacuumEnergyMultiplier || 1.0,
   };
 
   await set(SAVE_KEY, saveData);
@@ -226,11 +235,13 @@ export async function loadGame() {
     GameState.autoBuyEnabled = saveData.autoBuyEnabled || {};
     GameState.autoBuyUnlocked = saveData.autoBuyUnlocked || {};
     GameState.lifetimeEntropy = saveData.lifetimeEntropy || 0;
+    GameState.vacuumEnergy = saveData.vacuumEnergy || 0;
     GameState.primordialMatterSeen = saveData.primordialMatterSeen || false;
     GameState.totalPlayTime = saveData.totalPlayTime || 0;
     GameState.hasNucleosynthesis = saveData.hasNucleosynthesis || false;
     GameState.hasPrimordialAttunement = saveData.hasPrimordialAttunement || false;
     GameState.primordialEntropyBonus = saveData.primordialEntropyBonus || 0.02;
+    GameState.vacuumEnergyMultiplier = saveData.vacuumEnergyMultiplier || 1.0;
 
     // Sync layer to GameState
     syncLayerToGameState();

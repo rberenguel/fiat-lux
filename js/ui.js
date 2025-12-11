@@ -6,6 +6,8 @@ export let uiTempBar;
 export let nValueLabel;
 export let dmRow;
 export let dmDisplay;
+export let vacuumRow;
+export let vacuumDisplay;
 export let layerDisplay;
 export let layerNumber;
 export let layerName;
@@ -50,6 +52,8 @@ export function initializeUI() {
   nValueLabel = document.getElementById("nValueLabel");
   dmRow = document.getElementById("dmRow");
   dmDisplay = document.getElementById("dmDisplay");
+  vacuumRow = document.getElementById("vacuumRow");
+  vacuumDisplay = document.getElementById("vacuumDisplay");
   layerDisplay = document.getElementById("layerDisplay");
   layerNumber = document.getElementById("layerNumber");
   layerName = document.getElementById("layerName");
