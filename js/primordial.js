@@ -44,8 +44,20 @@ export function resetPrimordialMatterCounters() {
 /**
  * Check if primordial matter should spawn
  * Max 2 per universe, minimum 10 seconds between spawns
+ * No spawn in first universe or within first 5 seconds after shop
  */
 export function shouldSpawnPrimordialMatter() {
+  // Don't spawn in first universe (restartCount === 0)
+  if (GameState.restartCount === 0) {
+    return false;
+  }
+
+  // Don't spawn within first 5 seconds after shop closes
+  const now = Date.now();
+  if (now - GameState.universeStartTime < 5000) {
+    return false;
+  }
+
   // Don't spawn if universe is dying (< 30% energy)
   const energyRatio = GameState.currentTimeSpeed / GameState.baseTimeSpeed;
   if (energyRatio < 0.3) {
@@ -58,7 +70,6 @@ export function shouldSpawnPrimordialMatter() {
   }
 
   // Must be at least 10 seconds since last spawn
-  const now = Date.now();
   if (now - GameState.primordialMatterLastSpawn < 10000) {
     return false;
   }

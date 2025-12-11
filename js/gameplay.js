@@ -82,6 +82,9 @@ export function startEpoch() {
   // Reset primordial matter counters for new universe
   resetPrimordialMatterCounters();
 
+  // Track universe start time (for spawn cooldown)
+  GameState.universeStartTime = Date.now();
+
   // Sync to active layer
   syncGameStateToLayer();
 

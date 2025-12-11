@@ -46,6 +46,7 @@ export const GameState = {
   // Primordial matter tracking
   primordialMatterSpawned: 0, // Count for current universe
   primordialMatterLastSpawn: 0, // Timestamp of last spawn
+  universeStartTime: 0, // Timestamp when current universe started (for 5s cooldown after shop)
 };
 
 /**
