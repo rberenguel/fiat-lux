@@ -314,7 +314,6 @@ function renderShop(restartBtn) {
 
       const slider = document.createElement("span");
       slider.className = "autobuy-toggle-slider";
-
       toggleLabel.appendChild(checkbox);
       toggleLabel.appendChild(slider);
       upgradeWrapper.appendChild(toggleLabel);

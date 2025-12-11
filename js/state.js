@@ -22,6 +22,7 @@ export const GameState = {
   prestigeLevel: 0,
   lifetimeEntropy: 0,
   vacuumEnergy: 0, // Earned from universe lifespan at restart
+  observables: 0, // Layer 1 currency from crystallized timelines
 
   // Physics / Stats
   baseTimeSpeed: INITIAL_BASE_TIME_SPEED,
@@ -60,6 +61,14 @@ export const GameState = {
   // Universe run tracking
   universeRunDuration: 0, // Seconds the current universe has been alive
   vacuumEnergyMultiplier: 1.0, // Can be boosted by upgrades
+
+  // Layer 1: Observables system
+  observablesUpgrades: {
+    frictionConstant: 0, // Levels purchased for friction reduction
+    decayConstant: 0, // Levels purchased for decay reduction
+    planckConstant: 0, // Levels purchased for time speed increase
+    darkMatterSensitivity: 0, // Levels purchased for DM multiplier boost
+  },
 };
 
 /**
@@ -166,6 +175,7 @@ export async function saveGame() {
     prestigeLevel: layer.prestigeLevel,
     lifetimeEntropy: GameState.lifetimeEntropy || 0,
     vacuumEnergy: GameState.vacuumEnergy || 0,
+    observables: GameState.observables || 0,
     particleCount: layer.particleCount,
     baseTimeSpeed: layer.baseTimeSpeed,
     frictionCoeff: layer.frictionCoeff,
@@ -196,6 +206,14 @@ export async function saveGame() {
 
     // Vacuum energy system
     vacuumEnergyMultiplier: GameState.vacuumEnergyMultiplier || 1.0,
+
+    // Layer 1: Observables system
+    observablesUpgrades: GameState.observablesUpgrades || {
+      frictionConstant: 0,
+      decayConstant: 0,
+      planckConstant: 0,
+      darkMatterSensitivity: 0,
+    },
   };
 
   await set(SAVE_KEY, saveData);
@@ -236,12 +254,20 @@ export async function loadGame() {
     GameState.autoBuyUnlocked = saveData.autoBuyUnlocked || {};
     GameState.lifetimeEntropy = saveData.lifetimeEntropy || 0;
     GameState.vacuumEnergy = saveData.vacuumEnergy || 0;
+    GameState.observables = saveData.observables || 0;
     GameState.primordialMatterSeen = saveData.primordialMatterSeen || false;
     GameState.totalPlayTime = saveData.totalPlayTime || 0;
     GameState.hasNucleosynthesis = saveData.hasNucleosynthesis || false;
-    GameState.hasPrimordialAttunement = saveData.hasPrimordialAttunement || false;
+    GameState.hasPrimordialAttunement =
+      saveData.hasPrimordialAttunement || false;
     GameState.primordialEntropyBonus = saveData.primordialEntropyBonus || 0.02;
     GameState.vacuumEnergyMultiplier = saveData.vacuumEnergyMultiplier || 1.0;
+    GameState.observablesUpgrades = saveData.observablesUpgrades || {
+      frictionConstant: 0,
+      decayConstant: 0,
+      planckConstant: 0,
+      darkMatterSensitivity: 0,
+    };
 
     // Sync layer to GameState
     syncLayerToGameState();

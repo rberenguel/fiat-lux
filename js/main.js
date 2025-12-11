@@ -12,6 +12,7 @@ import {
   ENTROPY_DIVISOR,
   getDecayRate,
   INITIAL_PARTICLE_COUNT,
+  OBSERVABLES_RATE,
 } from "./config.js";
 import {
   initializeRenderer,
@@ -30,6 +31,8 @@ import {
   dmDisplay,
   vacuumRow,
   vacuumDisplay,
+  observablesRow,
+  observablesDisplay,
   restartBtn,
 } from "./ui.js";
 import { formatNumber } from "./utils.js";
@@ -202,7 +205,8 @@ import {
       if (GameState.hasNucleosynthesis) {
         // Bonus: +5% per 10x playtime (logarithmic scaling)
         // Examples: 1 min = 1.00x, 10 min = 1.05x, 100 min = 1.10x, 1000 min = 1.15x
-        const timeBonus = 1 + Math.log10(GameState.totalPlayTime / 60 + 1) * 0.05;
+        const timeBonus =
+          1 + Math.log10(GameState.totalPlayTime / 60 + 1) * 0.05;
         entropyMult *= timeBonus;
       }
 
@@ -233,7 +237,16 @@ import {
 
       // Process auto-buys
       processAutoBuys();
+    }
 
+    // 5.5. LAYER 1: Observables Generation (outside entropy check, always ticks in Layer 1)
+    if (GameState.activeLayerIndex > 0 && GameState.particleCount > 0) {
+      GameState.observables +=
+        GameState.particleCount * OBSERVABLES_RATE * (ticker.deltaTime / 60);
+    }
+
+    // Continue with UI updates if we generated entropy
+    if (GameState.currentTimeSpeed > 0 && activeLimit > 0) {
       // 6. UPDATE UI: Stats
       uiEntropy.textContent = formatNumber(GameState.entropy);
 
@@ -248,6 +261,11 @@ import {
       if (GameState.vacuumEnergy > 0) {
         vacuumRow.style.display = "block";
         vacuumDisplay.textContent = GameState.vacuumEnergy.toFixed(3);
+      }
+
+      if (GameState.observables > 0) {
+        observablesRow.style.display = "block";
+        observablesDisplay.textContent = GameState.observables.toFixed(2);
       }
 
       incrementGTime(GameState.currentTimeSpeed * dt); // Normalize for frame rate

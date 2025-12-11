@@ -47,6 +47,9 @@ export const PARTICLE_LIGHTNESS_EXPLODE = 70;
 export const ENTROPY_DIVISOR = 860; // Tuned for ~30 Entropy per run with INITIAL_PARTICLE_COUNT=10
 export const DARK_MATTER_ENTROPY_MULTIPLIER = 0.1;
 
+// Layer 1: Observables generation rate
+export const OBSERVABLES_RATE = 0.1; // Per particle per second
+
 // Prestige cost scaling
 export const PRESTIGE_BASE_COST = 50000;
 export const PRESTIGE_COST_MULTIPLIER = 2;
@@ -119,7 +122,7 @@ export const UPGRADES = [
     name: "Stellar Nucleosynthesis",
     initialCost: 500,
     costMultiplier: 1.8,
-    desc: "Particle generation scales with total time played.",
+    desc: "Entropy extraction improves as your timeline lengthens.",
     effect: (gameState) => {
       gameState.hasNucleosynthesis = true;
     },

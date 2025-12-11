@@ -8,6 +8,8 @@ export let dmRow;
 export let dmDisplay;
 export let vacuumRow;
 export let vacuumDisplay;
+export let observablesRow;
+export let observablesDisplay;
 export let layerDisplay;
 export let layerNumber;
 export let layerName;
@@ -43,6 +45,8 @@ export function initializeUI() {
         <div>Particles: <span id="nValueLabel" style="color:#00ccff">10<sup>10</sup></span></div>
         <div>Entropy: <span id="entropyDisplay">0</span></div>
         <div id="dmRow" style="display:none; color:#a100f2">Dark Matter: <span id="dmDisplay">0</span></div>
+        <div id="vacuumRow" style="display:none; color:#00ddff">Vacuum Energy: <span id="vacuumDisplay">0.000</span></div>
+        <div id="observablesRow" style="display:none; color:#00ffaa">Observables: <span id="observablesDisplay">0.00</span></div>
     `;
 
   // Get references to UI elements
@@ -54,6 +58,8 @@ export function initializeUI() {
   dmDisplay = document.getElementById("dmDisplay");
   vacuumRow = document.getElementById("vacuumRow");
   vacuumDisplay = document.getElementById("vacuumDisplay");
+  observablesRow = document.getElementById("observablesRow");
+  observablesDisplay = document.getElementById("observablesDisplay");
   layerDisplay = document.getElementById("layerDisplay");
   layerNumber = document.getElementById("layerNumber");
   layerName = document.getElementById("layerName");

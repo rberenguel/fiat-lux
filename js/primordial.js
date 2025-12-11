@@ -245,7 +245,9 @@ export function clickPrimordialMatter(sprite) {
 
   // Reward is a percentage of current entropy (encourages deeper runs)
   // Base: 2% of current entropy, can be upgraded to 4%
-  const reward = Math.floor(GameState.entropy * GameState.primordialEntropyBonus);
+  const reward = Math.floor(
+    GameState.entropy * GameState.primordialEntropyBonus,
+  );
 
   // Remove from active orbs array
   const index = activePrimordialOrbs.indexOf(sprite);
