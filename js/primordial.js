@@ -74,11 +74,18 @@ export function shouldSpawnPrimordialMatter() {
     return false;
   }
 
-  // Random chance: 5% per second (checked every frame)
-  // At 60fps, this is ~0.083% per frame = 5% per second
-  // Average first spawn: ~20 seconds
-  const chance = 0.05 / 60;
-  return Math.random() < chance;
+  // Random chance: 1% per second (checked every frame)
+  // At 60fps, this is ~0.0167% per frame = 1% per second
+  // Average first spawn: ~100 seconds
+  // Can be increased with Primordial Attunement upgrade
+  let baseChance = 0.01 / 60;
+
+  // If upgrade is unlocked, double the spawn rate
+  if (GameState.hasPrimordialAttunement) {
+    baseChance *= 2; // 2% per second
+  }
+
+  return Math.random() < baseChance;
 }
 
 /**
@@ -119,7 +126,6 @@ export function spawnPrimordialMatter(app, particleContainer, particleTexture) {
   sprite.primordialData = {
     lifetime: 0,
     maxLifetime: 5000, // 5 seconds to click
-    baseEntropy: 500, // Base reward
     pulsePhase: Math.random() * Math.PI * 2,
   };
 
@@ -230,16 +236,16 @@ export function updateAllPrimordialMatter(deltaTime) {
 
 /**
  * Handle click on primordial matter
- * Returns entropy reward
+ * Returns entropy reward based on current entropy (like Idle Slayer's mechanic)
  */
 export function clickPrimordialMatter(sprite) {
   if (!sprite.primordialData) return 0;
 
   const data = sprite.primordialData;
-  const timeRatio = 1 - data.lifetime / data.maxLifetime;
 
-  // Reward scales with how quickly you clicked (50% to 100% of base)
-  const reward = Math.floor(data.baseEntropy * (0.5 + timeRatio * 0.5));
+  // Reward is a percentage of current entropy (encourages deeper runs)
+  // Base: 2% of current entropy, can be upgraded to 4%
+  const reward = Math.floor(GameState.entropy * GameState.primordialEntropyBonus);
 
   // Remove from active orbs array
   const index = activePrimordialOrbs.indexOf(sprite);

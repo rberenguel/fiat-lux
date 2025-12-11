@@ -47,6 +47,14 @@ export const GameState = {
   primordialMatterSpawned: 0, // Count for current universe
   primordialMatterLastSpawn: 0, // Timestamp of last spawn
   universeStartTime: 0, // Timestamp when current universe started (for 5s cooldown after shop)
+
+  // Time tracking
+  totalPlayTime: 0, // Total seconds played
+
+  // Synergy upgrade flags
+  hasNucleosynthesis: false, // Stellar Nucleosynthesis upgrade
+  hasPrimordialAttunement: false, // Increases primordial matter spawn rate
+  primordialEntropyBonus: 0.02, // Base 2% of current entropy as bonus
 };
 
 /**
@@ -174,6 +182,11 @@ export async function saveGame() {
 
     // Total playtime tracking
     totalPlayTime: GameState.totalPlayTime || 0,
+
+    // Synergy upgrade flags
+    hasNucleosynthesis: GameState.hasNucleosynthesis || false,
+    hasPrimordialAttunement: GameState.hasPrimordialAttunement || false,
+    primordialEntropyBonus: GameState.primordialEntropyBonus || 0.02,
   };
 
   await set(SAVE_KEY, saveData);
@@ -215,6 +228,9 @@ export async function loadGame() {
     GameState.lifetimeEntropy = saveData.lifetimeEntropy || 0;
     GameState.primordialMatterSeen = saveData.primordialMatterSeen || false;
     GameState.totalPlayTime = saveData.totalPlayTime || 0;
+    GameState.hasNucleosynthesis = saveData.hasNucleosynthesis || false;
+    GameState.hasPrimordialAttunement = saveData.hasPrimordialAttunement || false;
+    GameState.primordialEntropyBonus = saveData.primordialEntropyBonus || 0.02;
 
     // Sync layer to GameState
     syncLayerToGameState();

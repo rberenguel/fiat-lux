@@ -114,6 +114,41 @@ export const UPGRADES = [
     },
     unlockCondition: (gs) => gs.lifetimeEntropy >= UNLOCK_TIMESKIP_THRESHOLD,
   },
+  {
+    id: "nucleosynthesis",
+    name: "Stellar Nucleosynthesis",
+    initialCost: 500,
+    costMultiplier: 1.8,
+    desc: "Particle generation scales with total time played.",
+    effect: (gameState) => {
+      gameState.hasNucleosynthesis = true;
+    },
+    unlockCondition: (gs) => gs.lifetimeEntropy >= 2000,
+  },
+  {
+    id: "primordial_attunement",
+    name: "Primordial Attunement",
+    initialCost: 3000,
+    costMultiplier: 1,
+    desc: "Doubles the spawn rate of Primordial Matter. (One-time)",
+    effect: (gameState) => {
+      gameState.hasPrimordialAttunement = true;
+    },
+    unlockCondition: (gs) => gs.lifetimeEntropy >= 5000,
+    isOneTime: true,
+  },
+  {
+    id: "primordial_amplification",
+    name: "Primordial Amplification",
+    initialCost: 8000,
+    costMultiplier: 1,
+    desc: "Primordial Matter rewards increased from 2% to 4% of current entropy. (One-time)",
+    effect: (gameState) => {
+      gameState.primordialEntropyBonus = 0.04;
+    },
+    unlockCondition: (gs) => gs.lifetimeEntropy >= 15000,
+    isOneTime: true,
+  },
   // AUTO-BUY UNLOCK UPGRADES
   {
     id: "autobuy_mass",

@@ -147,6 +147,9 @@ import {
   app.ticker.add((ticker) => {
     if (!GameState.isRunning) return;
 
+    // Track total playtime (deltaTime is 1.0 at 60fps = 1/60 second)
+    GameState.totalPlayTime += ticker.deltaTime / 60;
+
     // Normalize for frame rate - deltaTime is 1.0 at 60fps
     // Apply time multiplier for fast forward
     const dt = ticker.deltaTime * GameState.timeMultiplier;
@@ -186,8 +189,17 @@ import {
 
     // 5. CALCULATE: Entropy Income (time-normalized)
     if (GameState.currentTimeSpeed > 0 && activeLimit > 0) {
-      const entropyMult =
+      // Base entropy multiplier from dark matter
+      let entropyMult =
         1 + GameState.darkMatter * DARK_MATTER_ENTROPY_MULTIPLIER;
+
+      // Apply Stellar Nucleosynthesis time bonus if unlocked
+      if (GameState.hasNucleosynthesis) {
+        // Bonus: +5% per 10x playtime (logarithmic scaling)
+        // Examples: 1 min = 1.00x, 10 min = 1.05x, 100 min = 1.10x, 1000 min = 1.15x
+        const timeBonus = 1 + Math.log10(GameState.totalPlayTime / 60 + 1) * 0.05;
+        entropyMult *= timeBonus;
+      }
 
       let currentOutput;
       if (GameState.activeLayerIndex === 0) {
