@@ -1,6 +1,6 @@
-import { GameState, syncGameStateToLayer } from "./state.js";
+import { GameState, syncGameStateToLayer, saveGame } from "./state.js";
 import { checkPhaseShift } from "./gameplay.js";
-import { LAYERS } from "./config.js";
+import { LAYERS, INITIAL_PARTICLE_COUNT } from "./config.js";
 
 /**
  * Initialize debug panel if ?debug is in URL
@@ -26,7 +26,10 @@ export function initializeDebugPanel() {
                 DM: <span id="debugDM">0</span> / 100
             </div>
             <div style="margin-bottom: 8px;">
-                Particles: <span id="debugParticles">0</span>
+                Layer Particles: <span id="debugParticles">0</span>
+            </div>
+            <div style="margin-bottom: 8px;">
+                Multiverse: <span id="debugMultiverse">0</span>
             </div>
             <div style="margin-bottom: 8px;">
                 Observables: <span id="debugObservables">0</span>
@@ -47,6 +50,9 @@ export function initializeDebugPanel() {
                 </button>
                 <button id="debugAddParticle" style="background: #003366; color: #00aaff; border: 1px solid #00aaff; padding: 5px; cursor: pointer;">
                     +1 Particle
+                </button>
+                <button id="debugForceLayer0" style="background: #003366; color: #00aaff; border: 1px solid #00aaff; padding: 5px; cursor: pointer;">
+                    Force Layer 0
                 </button>
                 <button id="debugResetLayer" style="background: #330000; color: #ff0000; border: 1px solid #ff0000; padding: 5px; cursor: pointer;">
                     Reset to Layer 0
@@ -90,6 +96,14 @@ export function initializeDebugPanel() {
     updateDebugDisplay();
   };
 
+  document.getElementById("debugForceLayer0").onclick = () => {
+    GameState.activeLayerIndex = 0;
+    GameState.particleCount = INITIAL_PARTICLE_COUNT;
+    syncGameStateToLayer();
+    saveGame();
+    window.location.reload();
+  };
+
   document.getElementById("debugResetLayer").onclick = () => {
     if (confirm("Reset to Layer 0? This will clear all progress.")) {
       window.location.reload();
@@ -108,6 +122,7 @@ function updateDebugDisplay() {
   const debugLayerName = document.getElementById("debugLayerName");
   const debugDM = document.getElementById("debugDM");
   const debugParticles = document.getElementById("debugParticles");
+  const debugMultiverse = document.getElementById("debugMultiverse");
   const debugObservables = document.getElementById("debugObservables");
 
   if (debugLayer) {
@@ -115,6 +130,7 @@ function updateDebugDisplay() {
     debugLayerName.textContent = LAYERS[GameState.activeLayerIndex].name;
     debugDM.textContent = Math.floor(GameState.darkMatter);
     debugParticles.textContent = GameState.particleCount;
+    debugMultiverse.textContent = GameState.multiverseParticleCount;
     debugObservables.textContent = GameState.observables.toFixed(2);
   }
 }

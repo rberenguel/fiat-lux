@@ -24,6 +24,7 @@ export let phaseShiftLayerName;
 export let phaseShiftConfirm;
 export let phaseShiftCancel;
 export let fiatLuxBtn;
+export let crystallizeBtn;
 export let menuModal;
 export let menuBtn;
 export let closeMenuBtn;
@@ -87,6 +88,13 @@ export function initializeUI() {
   fiatLuxBtn.className = "upgrade-btn";
   fiatLuxBtn.style.display = "none";
   shopModal.insertBefore(fiatLuxBtn, restartBtn);
+
+  // Create Crystallize Timeline button (for Layer 1)
+  crystallizeBtn = document.createElement("button");
+  crystallizeBtn.id = "crystallizeBtn";
+  crystallizeBtn.className = "upgrade-btn";
+  crystallizeBtn.style.display = "none";
+  shopModal.insertBefore(crystallizeBtn, restartBtn);
 
   // Menu modal elements
   menuModal = document.getElementById("menuModal");

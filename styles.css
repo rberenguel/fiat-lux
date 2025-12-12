@@ -119,8 +119,30 @@ canvas {
   z-index: 100;
   text-align: center;
   min-width: 320px;
+  max-height: 85vh;
+  overflow-y: auto;
   box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(10px);
+}
+
+/* Styled scrollbar for shop modal */
+#shopModal::-webkit-scrollbar {
+  width: 10px;
+}
+
+#shopModal::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 5px;
+}
+
+#shopModal::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #00ccff, #00aacc);
+  border-radius: 5px;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+}
+
+#shopModal::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #00ffff, #00ccdd);
 }
 
 #shopModal h2 {
@@ -591,4 +613,56 @@ canvas {
       0 0 60px rgba(255, 170, 0, 0.5),
       inset 0 0 80px rgba(255, 170, 0, 0.2);
   }
+}
+
+/* Tab Switcher (Universe/Multiverse) */
+#tabSwitcher {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 100;
+}
+
+.tab-btn {
+  font-family: "Cinzel", serif;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 10px 24px;
+  background: rgba(20, 20, 25, 0.95);
+  color: #888;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+}
+
+.tab-btn:hover {
+  background: rgba(30, 30, 35, 0.98);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #aaa;
+}
+
+.tab-btn.active {
+  background: rgba(40, 40, 50, 1);
+  color: #00ffaa;
+  border-color: #00ffaa;
+  box-shadow: 0 0 20px rgba(0, 255, 170, 0.3);
+}
+
+/* Multiverse Canvas */
+#multiverseCanvas {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+}
+
+#multiverseCanvas.active {
+  display: block;
 }

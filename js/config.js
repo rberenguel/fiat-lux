@@ -279,6 +279,15 @@ export const RESTART_NAMES = [
 // Layer system configuration
 export const PHASE_SHIFT_DM_THRESHOLD = 100; // Dark Matter needed to unlock next layer
 
+/**
+ * Calculate cost to crystallize timeline (add particle to multiverse)
+ * Formula: 100 * 2^particleCount
+ * Examples: 1st=100, 2nd=200, 3rd=400, 4th=800
+ */
+export function getCrystallizeTimelineCost(particleCount) {
+  return 100 * Math.pow(2, particleCount);
+}
+
 export const LAYERS = [
   {
     index: 0,

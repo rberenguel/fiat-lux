@@ -53,10 +53,16 @@ import {
   clickPrimordialMatter,
   getActivePrimordialOrbs,
 } from "./primordial.js";
+import {
+  initializeMultiverseRenderer,
+  showMultiverseView,
+  hideMultiverseView,
+} from "./multiverse.js";
 
 (async () => {
   // Initialize all systems
   await initializeRenderer();
+  await initializeMultiverseRenderer();
   initializeUI();
 
   // Check for ?new URL parameter to force fresh start
@@ -75,6 +81,30 @@ import {
   setupRestartButton(restartBtn);
   initializeMenu(); // Initialize menu modal and keyboard shortcuts
   initializeDebugPanel(); // Add debug panel if ?debug is in URL
+
+  // Setup tab switching (Universe/Multiverse)
+  const tabSwitcher = document.getElementById("tabSwitcher");
+  const universeTab = document.getElementById("universeTab");
+  const multiverseTab = document.getElementById("multiverseTab");
+
+  universeTab.onclick = () => {
+    universeTab.classList.add("active");
+    multiverseTab.classList.remove("active");
+    hideMultiverseView();
+    app.canvas.style.display = "block";
+  };
+
+  multiverseTab.onclick = () => {
+    multiverseTab.classList.add("active");
+    universeTab.classList.remove("active");
+    showMultiverseView();
+    app.canvas.style.display = "none";
+  };
+
+  // Show tab switcher when player has earned at least 1 DM
+  if (GameState.darkMatter >= 1 || GameState.multiverseParticleCount > 0) {
+    tabSwitcher.style.display = "flex";
+  }
 
   // Hide particles initially (do this AFTER renderer is initialized)
   particleContainer.alpha = 0;
@@ -210,6 +240,13 @@ import {
         entropyMult *= timeBonus;
       }
 
+      // Apply Observables entropy bonus
+      // Significant bonus to speed up progression: +10% per observable
+      if (GameState.observables > 0) {
+        const observablesBonus = 1 + GameState.observables * 0.1;
+        entropyMult *= observablesBonus;
+      }
+
       let currentOutput;
       if (GameState.activeLayerIndex === 0) {
         // Layer 0: Grid-based (quadratic scaling)
@@ -234,15 +271,14 @@ import {
 
       GameState.entropy += currentOutput;
       GameState.lifetimeEntropy += currentOutput;
-
-      // Process auto-buys
-      processAutoBuys();
     }
 
-    // 5.5. LAYER 1: Observables Generation (outside entropy check, always ticks in Layer 1)
-    if (GameState.activeLayerIndex > 0 && GameState.particleCount > 0) {
+    // 5.5. LAYER 1: Observables Generation (outside entropy check, always ticks)
+    if (GameState.multiverseParticleCount > 0) {
       GameState.observables +=
-        GameState.particleCount * OBSERVABLES_RATE * (ticker.deltaTime / 60);
+        GameState.multiverseParticleCount *
+        OBSERVABLES_RATE *
+        (ticker.deltaTime / 60);
     }
 
     // Continue with UI updates if we generated entropy

@@ -23,6 +23,7 @@ export const GameState = {
   lifetimeEntropy: 0,
   vacuumEnergy: 0, // Earned from universe lifespan at restart
   observables: 0, // Layer 1 currency from crystallized timelines
+  multiverseParticleCount: 0, // Permanent particles in multiverse (separate from layer particleCount)
 
   // Physics / Stats
   baseTimeSpeed: INITIAL_BASE_TIME_SPEED,
@@ -176,6 +177,7 @@ export async function saveGame() {
     lifetimeEntropy: GameState.lifetimeEntropy || 0,
     vacuumEnergy: GameState.vacuumEnergy || 0,
     observables: GameState.observables || 0,
+    multiverseParticleCount: GameState.multiverseParticleCount || 0,
     particleCount: layer.particleCount,
     baseTimeSpeed: layer.baseTimeSpeed,
     frictionCoeff: layer.frictionCoeff,
@@ -255,6 +257,7 @@ export async function loadGame() {
     GameState.lifetimeEntropy = saveData.lifetimeEntropy || 0;
     GameState.vacuumEnergy = saveData.vacuumEnergy || 0;
     GameState.observables = saveData.observables || 0;
+    GameState.multiverseParticleCount = saveData.multiverseParticleCount || 0;
     GameState.primordialMatterSeen = saveData.primordialMatterSeen || false;
     GameState.totalPlayTime = saveData.totalPlayTime || 0;
     GameState.hasNucleosynthesis = saveData.hasNucleosynthesis || false;

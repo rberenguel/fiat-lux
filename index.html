@@ -8,6 +8,12 @@
     />
     <title>Fiat Lux</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json" />
+
     <!-- External Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/8.1.5/pixi.min.js"></script>
 
@@ -15,6 +21,12 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <!-- Tab Switcher (Universe/Multiverse) -->
+    <div id="tabSwitcher" style="display: none">
+      <button id="universeTab" class="tab-btn active">Universe</button>
+      <button id="multiverseTab" class="tab-btn">Multiverse</button>
+    </div>
+
     <!-- Temperature/Timeline Bar -->
     <div id="timelineContainer">
       <div id="timelineBar"></div>

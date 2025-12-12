@@ -15,6 +15,7 @@ import {
   INITIAL_DECAY_RATE,
   PHASE_SHIFT_DM_THRESHOLD,
   LAYERS,
+  getCrystallizeTimelineCost,
 } from "./config.js";
 import { GameLayer } from "./layer.js";
 import { particleContainer } from "./renderer.js";
@@ -33,6 +34,7 @@ import {
   layerNumber,
   layerName,
   fiatLuxBtn,
+  crystallizeBtn,
   menuModal,
   menuBtn,
   closeMenuBtn,
@@ -133,62 +135,72 @@ export function triggerBigFreeze() {
       // Increment restart count before getting text
       GameState.restartCount++;
 
-      // Show transition overlay with restart text
+      // Show subtle text overlay (no translation, over dead universe)
       const buttonText = getRestartButtonText(GameState.restartCount);
       const overlay = document.createElement("div");
       overlay.style.cssText = `
                 position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.95);
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                z-index: 200;
-                animation: fadeInOut 2s ease-in-out;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 50;
+                pointer-events: none;
+                opacity: 0;
+                transition: opacity 0.6s ease-in-out;
             `;
 
       const mainText = document.createElement("div");
       mainText.style.cssText = `
                 font-family: 'Cinzel', serif;
-                font-size: 4rem;
+                font-size: 2rem;
                 color: #00ffff;
-                text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
-                margin-bottom: 20px;
+                text-shadow: 0 0 10px rgba(0, 255, 255, 0.6);
+                text-align: center;
             `;
       mainText.textContent = buttonText.main;
 
       overlay.appendChild(mainText);
-
-      if (buttonText.sub) {
-        const subText = document.createElement("div");
-        subText.style.cssText = `
-                    font-family: 'Cinzel', serif;
-                    font-size: 1.5rem;
-                    color: rgba(0, 255, 255, 0.6);
-                    font-style: italic;
-                `;
-        subText.textContent = buttonText.sub;
-        overlay.appendChild(subText);
-      }
-
       document.body.appendChild(overlay);
 
-      // Auto-restart after animation
+      // Fade in text over dead universe
       setTimeout(() => {
-        overlay.remove();
+        overlay.style.opacity = "1";
+      }, 50);
+
+      // Start crossfade: text fades out AS new universe fades in
+      setTimeout(() => {
+        // Start new epoch with particles hidden
+        particleContainer.alpha = 0;
         startEpoch();
-      }, 2000);
+
+        // Begin crossfade: text out, particles in (faster crossfade)
+        overlay.style.opacity = "0";
+
+        const fadeInDuration = 1200;
+        const fadeInStart = Date.now();
+
+        const animateCrossfade = () => {
+          const elapsed = Date.now() - fadeInStart;
+          const progress = Math.min(elapsed / fadeInDuration, 1);
+          particleContainer.alpha = progress;
+
+          if (progress < 1) {
+            requestAnimationFrame(animateCrossfade);
+          } else {
+            // Clean up text overlay after crossfade completes
+            overlay.remove();
+          }
+        };
+
+        animateCrossfade();
+      }, 400);
     } else {
       // Show shop for manual restart
       shopModal.style.display = "block";
       shopEntropy.textContent = formatNumber(GameState.entropy);
       renderShop(restartButtonRef);
     }
-  }, 1000);
+  }, 300);
 }
 
 /**
@@ -211,6 +223,9 @@ export function checkDeathConditions() {
  * Render the shop/upgrade interface
  */
 function renderShop(restartBtn) {
+  // Process auto-buys when shop opens (between universes)
+  processAutoBuys();
+
   // Update shop title based on layer
   const shopTitle = shopModal.querySelector("h2");
   if (GameState.activeLayerIndex > 0) {
@@ -322,8 +337,8 @@ function renderShop(restartBtn) {
     upgradesList.appendChild(upgradeWrapper);
   });
 
-  // Prestige button - only show after reaching 1000 entropy
-  const PRESTIGE_THRESHOLD = 1000;
+  // Prestige button - only show after reaching 50K entropy
+  const PRESTIGE_THRESHOLD = 50000;
   if (GameState.entropy >= PRESTIGE_THRESHOLD) {
     const PRESTIGE_COST =
       PRESTIGE_BASE_COST *
@@ -331,14 +346,12 @@ function renderShop(restartBtn) {
     const canPrestige = GameState.entropy >= PRESTIGE_COST;
 
     prestigeBtn.style.display = "block";
-    prestigeBtn.innerHTML = `<strong>BIG CRUNCH</strong><br><small>Collapse Universe.</small><br>Req: ${formatNumber(PRESTIGE_COST)}<br><span style="color:#ff00ff">+1 Dark Matter</span>`;
+    prestigeBtn.innerHTML = `<strong>BIG CRUNCH</strong><br><small>Collapse Universe for Dark Matter.</small><br>Req: ${formatNumber(PRESTIGE_COST)}<br><span style="color:#ff00ff">+1 Dark Matter</span><br><span style="color:#ff6666">⚠ Resets Entropy & Upgrades</span>`;
     prestigeBtn.disabled = !canPrestige;
 
     prestigeBtn.onclick = () => {
-      if (confirm("Collapse the universe?")) {
-        performPrestige();
-        saveGame(); // Auto-save after prestige
-      }
+      performPrestige();
+      saveGame(); // Auto-save after prestige
     };
   } else {
     prestigeBtn.style.display = "none";
@@ -370,6 +383,23 @@ function renderShop(restartBtn) {
     fiatLuxBtn.style.display = "none";
   }
 
+  // Crystallize Timeline button - show when have at least 1 DM
+  if (GameState.darkMatter >= 1) {
+    const crystallizeCost = 50; // Flat cost
+    const canCrystallize = GameState.darkMatter >= crystallizeCost;
+
+    crystallizeBtn.style.display = "block";
+    crystallizeBtn.innerHTML = `<strong>CRYSTALLIZE TIMELINE</strong><br><small>Collapse timeline into multiverse particle.</small><br>Cost: ${formatNumber(crystallizeCost)} Dark Matter<br><span style="color:#00ffaa">Multiverse Particles: ${GameState.multiverseParticleCount} → ${GameState.multiverseParticleCount + 1}</span><br><span style="color:#ff6666">⚠ Resets Universe (DM, Entropy, Upgrades)</span>`;
+    crystallizeBtn.disabled = !canCrystallize;
+
+    crystallizeBtn.onclick = () => {
+      crystallizeTimeline();
+      renderShop(restartBtn);
+    };
+  } else {
+    crystallizeBtn.style.display = "none";
+  }
+
   // Update restart button text
   updateRestartButtonText(restartBtn);
 }
@@ -381,6 +411,14 @@ function performPrestige() {
   GameState.lifetimeEntropy += GameState.entropy;
   GameState.prestigeLevel++;
   GameState.darkMatter++;
+
+  // Show Multiverse tab when first DM is earned
+  if (GameState.darkMatter === 1) {
+    const tabSwitcher = document.getElementById("tabSwitcher");
+    if (tabSwitcher) {
+      tabSwitcher.style.display = "flex";
+    }
+  }
 
   // Reset game state
   GameState.entropy = 0;
@@ -397,8 +435,7 @@ function performPrestige() {
   // Sync changes to active layer
   syncGameStateToLayer();
 
-  // Check if we should trigger phase shift
-  checkPhaseShift();
+  // Note: No phase shift system - players stay in Layer 0 and use Crystallize Timeline instead
 
   startEpoch();
 }
@@ -506,6 +543,12 @@ function completePhaseShift(nextLayerIndex, nextLayerConfig) {
     layerDisplay.style.display = "block";
     layerNumber.textContent = nextLayerIndex;
     layerName.textContent = nextLayerConfig.name;
+
+    // Show tab switcher for multiverse navigation
+    const tabSwitcher = document.getElementById("tabSwitcher");
+    if (tabSwitcher) {
+      tabSwitcher.style.display = "flex";
+    }
   }
 
   // Reset particle container scale, alpha, pivot, and position
@@ -519,6 +562,73 @@ function completePhaseShift(nextLayerIndex, nextLayerConfig) {
 
   // Start new epoch
   startEpoch();
+}
+
+/**
+ * Crystallize Timeline - Collapse universe into permanent multiverse particle
+ * Costs 50 DM flat, adds particle to multiverse, resets universe
+ */
+export function crystallizeTimeline() {
+  const cost = 50;
+
+  // Check if can afford
+  if (GameState.darkMatter < cost) {
+    console.warn(
+      `Cannot crystallize: need ${cost} DM, have ${GameState.darkMatter}`,
+    );
+    return;
+  }
+
+  // Add particle to multiverse (permanent!)
+  GameState.multiverseParticleCount += 1;
+
+  // Reset Dark Matter to 0
+  GameState.darkMatter = 0;
+
+  // Reset entropy
+  GameState.entropy = 0;
+
+  // Reset particle count
+  GameState.particleCount = INITIAL_PARTICLE_COUNT;
+
+  // Reset physics
+  GameState.baseTimeSpeed = INITIAL_BASE_TIME_SPEED;
+  GameState.frictionCoeff = INITIAL_FRICTION_COEFF;
+  GameState.decayRate = INITIAL_DECAY_RATE;
+  GameState.timeMultiplier = 1.0;
+
+  // Reset synergy upgrade flags
+  GameState.hasNucleosynthesis = false;
+  GameState.hasPrimordialAttunement = false;
+  GameState.primordialEntropyBonus = 0.02;
+  GameState.vacuumEnergyMultiplier = 1.0;
+
+  // Reset upgrade costs
+  UPGRADES.forEach((u, index) => {
+    upgradeCosts[index] = u.initialCost;
+  });
+
+  // Reset upgrade purchase tracking
+  GameState.upgradePurchaseCounts = {};
+
+  // Keep observables and observablesUpgrades intact!
+  // (They persist through crystallization)
+
+  // Stay in Layer 0 (no layer change)
+  syncGameStateToLayer();
+
+  // Save progress
+  saveGame();
+
+  // Close shop modal
+  shopModal.style.display = "none";
+
+  // Start new universe
+  startEpoch();
+
+  console.log(
+    `✨ CRYSTALLIZED TIMELINE! Multiverse particles: ${GameState.multiverseParticleCount} (generating ${GameState.multiverseParticleCount * 0.1} observables/sec)`,
+  );
 }
 
 /**
